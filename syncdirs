@@ -1,0 +1,11 @@
+#!/bin/bash
+RSYNCOPTIONS="-a --no-o --no-p --no-g --safe-links --modify-window 1"
+cd ~
+#unison -perms 0x1600 ~/Pictures ~/Pictures/Windows
+#unison -perms 0x1600 ~/Documents/Fanfiction/ ~/Documents/Windows/Fanfiction/
+#unison -perms 0x1600 ~/Documents/Resumes ~/Documents/Windows/Resumes
+#unison -perms 0x1600 ~/Documents/Jist\ Cards ~/Documents/Windows/Jist\ Cards
+rsync $RSYNCOPTIONS /home/cmauch/Pictures /media/USBDOS/Pictures
+rsync $RSYNCOPTIONS /home/cmauch/Documents/Fanfiction /media/USBDOS/Documents
+rsync $RSYNCOPTIONS /home/cmauch/Documents/Resumes /media/USBDOS/Documents
+rsync $RSYNCOPTIONS /home/cmauch/Documents/Jist\ Cards /media/USBDOS/Documents

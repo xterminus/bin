@@ -1,0 +1,114 @@
+#!/usr/bin/perl
+# select PlayCount from CoreTracks;
+use DBI;
+use strict;
+use XML::Simple;
+use Data::Dumper;
+use Digest::MD5 qw(md5);
+use Encode qw(encode_utf8); # added to deal with "Wide characters" in song names
+
+my $rboxfile = ".local/share/rhythmbox/rhythmdb.xml";
+my $banfile  = ".config/banshee-1/banshee.db";
+our $xml;
+
+my $dbh = DBI->connect("dbi:SQLite:$banfile")
+  || die "Cannot connect: $DBI::errstr";
+
+# Load the Rhythmbox database
+print "Parsing Rhythmbox Library...\n";
+
+# create object
+my $xml = new XML::Simple;
+
+# read XML file
+my $data = $xml->XMLin($rboxfile);
+
+# print output
+#print Dumper($data);
+
+foreach my $key ( keys( %{$data} ) ) {
+    if ( $key eq "entry" ) {
+        foreach my $newkey ( @{ $data->{$key} } ) {
+            my $location;
+            my $seen    = "o";
+            my $created = "o";
+            my $rating  = "o";
+            my $count   = "o";
+            foreach my $do ( keys( %{$newkey} ) ) {
+                if ( $do eq "location" ) {
+                    $location = $newkey->{$do};
+                }
+                elsif ( $do eq "play-count" ) {
+                    $count = $newkey->{$do};
+                }
+                elsif ( $do eq "last-seen" ) {
+                    $seen = $newkey->{$do};
+                }
+                elsif ( $do eq "first-seen" ) {
+                    $created = $newkey->{$do};
+                }
+                elsif ( $do eq "rating" ) {
+                    $rating = $newkey->{$do};
+                }
+
+            }
+            &findsong( $location, $count, $rating, $seen, $created );
+        }
+    }
+}
+
+sub findsong {
+    my $rhythm_uri = trim(shift);
+    my $rcount     = shift;
+    my $rrating    = shift;
+    my $rseen      = shift;
+    my $rcreated   = shift;
+    my $select_string = "SELECT Uri,Rating,PlayCount,LastPlayedStamp,DateAddedStamp FROM CoreTracks WHERE Uri = \"" . $rhythm_uri . '"';
+    my $res = $dbh->selectall_arrayref(qq( $select_string ));
+    print "No song found for @$res->[0]->[0] ..\n" unless @$res->[0]->[0];
+    return unless @$res->[0]->[0];
+
+    my $doupdate      = 0;
+    my $update_string = "UPDATE CoreTracks SET";
+    my $update_mid;
+
+    if ( $rcreated ne "o" ) {
+        $update_mid .= " DateAddedStamp = $rcreated,";
+        $doupdate = 1;
+    }
+
+    if ( $rseen ne "o" ) {
+        if ( @$res->[0]->[3] < $rseen ) {
+            $update_mid .= " LastPlayedStamp = $rseen,";
+            $doupdate = 1;
+        }
+    }
+
+    if ( $rcount ne "o" ) {
+     #   if ( @$res->[0]->[2] < $rcount ) {
+            $update_mid .= " Playcount = $rcount,";
+            $doupdate = 1;
+     #   }
+    }
+
+    if ( $rrating ne "o" ) {
+        $update_mid .= " Rating = $rrating,";
+        $doupdate = 1;
+    }
+    $update_mid =~ s/\,$//;
+
+    $update_string .= "$update_mid WHERE Uri = \"" . $rhythm_uri . '"';
+    if ($doupdate) {
+        print "$update_string..\n";
+        $dbh->do($update_string);
+        if ( $dbh->err() ) { die "$DBI::errstr\n"; }
+    }
+
+}
+
+sub trim {
+    $_ = $_[0];
+    s/^\s+//o;
+    s/\s+$//o;
+    return $_;
+}
