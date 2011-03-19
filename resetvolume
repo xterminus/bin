@@ -1,0 +1,2 @@
+#!/bin/sh
+kill `ps -ef | grep "volume-control.py" | grep -v grep | awk '{print $2}'`

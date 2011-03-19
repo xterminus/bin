@@ -1,0 +1,8 @@
+#!/usr/bin/perl
+
+my $range = 150;
+my $minimum = 105;
+my $random_number = int(rand($range)) + $minimum;
+
+print "ifconfig eth1 10.3.100." . $random_number . " netmask 255.255.255.0\n";
+print "route add default gw 10.3.100.2\n";

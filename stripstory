@@ -1,0 +1,83 @@
+#!/usr/bin/perl
+use strict;
+use Data::Dumper;
+
+# find . -type f -exec /home/cmauch/bin/stripstory '{}' \;
+
+my $chapter_split = 0;
+
+my @files = <$ARGV[0]/*.html>;
+foreach my $original_file (@files) {
+
+    my @clean_data;
+    my $strip_head = 0;
+    my $newtitle;
+
+    die "give me a file to work on!" unless $original_file;
+
+    open( ORIG, "$original_file" ) || die("Could not open $original_file!");
+    my @raw_data = <ORIG>;
+    close ORIG;
+
+    for my $line (@raw_data) {
+
+        # Strip out old header, we provide our own later
+        if (   ( $line =~ /^<html><style>.*$/ )
+            or ( $line =~ /^<!.*/ )
+            or ( $line =~ /^-->.*/ )
+            or ( $line =~ /<meta.*$/ )
+            or ( $line =~ /<div\ id=\"top-header\".*$/ )
+            or ( $line =~ /<div\ id=\"bott-header\".*$/ )
+            or ( $line =~ /<div\ id=\"sd\".*$/ )
+            or ( $line =~ /<div\ id=\"story\".*$/ )
+            or ( $line =~ /\ <\/div>$/ )
+            or ( $line =~ /<style.*$/ )
+            or ( $line =~ /<title.*$/ )
+            or ( $line =~ /<\/style.*$/ )
+            or ( $line =~ /<script.*$/ )
+            or ( $line =~ /<\/script.*$/ )
+            or ( $line =~ /<body\ .*$/ )
+            or ( $line =~ /<embed\ .*$/ )
+            or ( $line =~ /<a\ id=.*$/ )
+            or ( $line =~ /<a\ href=\"http:\/\/storiesonline\.net.*$/ )
+            or ( $line =~ /\@import.*$/ )
+            or ( $line =~ /\@media.*$/ ) )
+        {
+            $strip_head = 1;
+        }
+        else {
+            push( @clean_data, $line ) if defined $strip_head;
+        }
+        if ( $line =~ /<h2>(.*)<\/h2>/ ) {
+            pop(@clean_data);
+            push( @clean_data, "<h2>$1</h2>\n" );
+            $newtitle = "newhtml/$1";
+            $newtitle =~ s/\(/_/g;
+            $newtitle =~ s/\)/_/g;
+    	    $newtitle =~ s/\/|\\/_/g;
+	    $newtitle =~ s/newhtml_/newhtml\//g;
+        }
+    }
+
+    unshift( @clean_data, "\n" );
+    unshift( @clean_data, '<body><html>' );
+
+    push( @clean_data, '</body></html>' );
+	
+    if ( $original_file =~ /Page\ .*/ ) {
+	my $part = $original_file;
+        $part =~ /.*(Page\ .*)\)/;
+	$newtitle = "$newtitle\ $1";
+    } 
+
+
+    $newtitle = "$newtitle.html";
+
+    open( NEW, ">$newtitle" ) || die("Could not open $newtitle!");
+    print "Processed $newtitle\n";
+    for my $line (@clean_data) {
+        print NEW $line;
+    }
+    close NEW;
+
+}

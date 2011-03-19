@@ -1,0 +1,18 @@
+#!/bin/bash
+
+sleep 20
+
+# Export the dbus session address on startup so it can be used by cron
+rm $HOME/.Xdbus
+touch $HOME/.Xdbus
+chmod 744 $HOME/.Xdbus
+
+# Export DBUS Session
+env | grep DBUS_SESSION_BUS_ADDRESS > $HOME/.Xdbus
+
+# Export XAUTHORITY value on startup so it can be used by cron
+env | grep XAUTHORITY >> $HOME/.Xdbus
+
+# Ensure that our gui apps go to the right place
+echo 'DISPLAY=:0.0' >> $HOME/.Xdbus
+echo 'export DISPLAY XAUTHORITY DBUS_SESSION_BUS_ADDRESS' >> $HOME/.Xdbus

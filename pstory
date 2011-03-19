@@ -1,0 +1,220 @@
+#!/usr/bin/perl
+use strict;
+use LWP::Simple;
+use HTML::TokeParser;
+use Data::Dumper;
+
+my $story_url;
+my $story_title;
+my $story_id;
+my $publisher;
+my $author;
+my $chapters_total;
+my $iscomplete;
+my @clean_data;
+my $strip_head;
+my $updated;
+my $published;
+my $pairing;
+my $genres;
+my $tempfile = "/tmp/tempfile.html";
+my $workfile = "/tmp/workfile.html";
+my $destpath = "/home/cmauch/Documents/FanFics";
+my @validgenres = ( "Adventure", "Agnst", "Crime", "Drama", "Family",
+                    "Friendship", "General", "Horror", "Humor", "Hurt/Comfort",
+		    "Mystery", "Parody", "Poetry", "Romance", "Sci-Fi", "Spiritual",
+		    "Supernatural", "Suspense", "Tragedy", "Western" );
+my $validgenre;
+my $original_file = $ARGV[0];
+
+die "give me a file to work on!" unless $original_file;
+
+# Fix html first
+`cp \"$original_file\" $workfile`;
+`tidy -quiet -modify -omit -config /home/cmauch/Documents/Fanfiction/tidyrc \"$workfile\" 2>/dev/null`;
+
+open(ORIG, "$workfile") || die("Could not open $workfile!");
+my @raw_data=<ORIG>;
+close ORIG;
+
+for my $line ( @raw_data ) {
+ if ($line =~ /<title><\/title>/) {
+   $line =~ s/<title><\/title>//g;
+
+ } elsif ( $line =~ /^Name:\ / ) {
+   $line =~ s/^Name:\ (.*)<br\ \/>$//g;
+   $story_title = $1;
+ } elsif ( $line =~ /^Storyid:\ / ) {
+   $line =~ s/^Storyid:\ (.*)<br\ \/>$//g;
+   $story_id = $1;
+ } elsif ( $line =~ /^Author:\ / ) {
+   $line =~ s/^Author:\ (.*)<br\ \/>$//g;
+   $author = $1;
+ } elsif ( $line =~ /^FanFiction\.net/ ) {
+   $line =~ s/^FanFiction\.net//g;
+   $publisher = "fanfiction.net";
+ } elsif ( $line =~ /^Chapter\ 1\ to\ / ) {
+   $line =~ s/^Chapter\ 1\ to\ (.*)<br\ \/>//g;
+   $chapters_total = $1;
+ }
+
+ # Cleanup time!
+ if ( $line =~ /#####/ ) {
+   $line = "\n";
+ }
+ # Remove breaks, they suck
+ if ( $line =~ /<br\ \/>/ ) {
+   $line =~ s/<br\ \/>//g;
+ }
+ # Remove Class/Style tags, they suck too
+ if ( $line =~ /\ class=/ ) {
+   $line =~ s/\ class=.*>$/>/g;
+ }
+ if ( $line =~ /\ style=/ ) {
+   $line =~ s/\ style=.*>$/>/g;
+ }
+ 
+ # Properly tag chapters as headings
+ if ( $line =~ /^Chapter:\ /)  {
+   $line =~ s/^Chapter:\ (.*)$/<h2>Chapter:\ $1<\/h2>/g;
+ }
+
+ # Strip out old header, we provide our own later
+ if ( $line =~ /^<body>$/ ) {
+  $strip_head = 1;
+ } else {
+  push (@clean_data, $line) if defined $strip_head;
+ }
+}
+
+
+my $content = get( "http://$publisher/s/$story_id/" ) or movedie( $original_file );
+$content =~ /Rated:\ (.*)<script/;
+my $rating = $1;
+
+# Sample content line
+#<a href=\'http://www.fictionratings.com/\' target=\'rating\'> M</a> - English - Adventure/Romance -  Harry P. & Fleur D. - Reviews: <a href=\'/r/2482703/\'>1,205</a> - Updated: 03-05-08 - Published: 07-13-05 - id:2482703
+
+# Remove Complete tag, but save state for later
+if ( $rating =~ /Complete\ / ) {
+  $rating =~ s/Complete\ \-//g;
+  $iscomplete = 1;
+}
+
+my @rarray = split( " - ", $rating );
+for my $line ( @rarray ) {
+# print "$line\n";
+}
+
+# 1 - Language
+# 2 - Genre
+# 3 - Pairing
+
+$rating =~ /Updated:\ (\d\d-\d\d-\d\d)\ -/;
+$updated = $1;
+$rating =~ /Published:\ (\d\d-\d\d-\d\d)\ -/;
+$published  = $1;
+
+$genres =~ s/^\ //g;
+$pairing =~ s/^\ //g;
+$updated =~ s/^Updated:\ //g;
+$published =~ s/^Published:\ //g;
+
+# Determine if we have a valid genre, testing both arrays for matches
+
+if ( $rarray[2] =~ /\// ) {      # A slash indicates a valid genre by default
+ $genres = $rarray[2];		 # Just accept it and move on.
+ $pairing = $rarray[3];
+ $validgenre = 1;
+} else {			 # No Slash, so test for valid genres
+ if ( testgenre( $genres ) ) {   
+  $validgenre = 1;		 # Okay, leave $genre and $pairing alone
+ } elsif ( testgenre( $pairing ) ) {
+  $validgenre = 1;		 # 
+  $genres = $pairing;		 # Matched a valid genre in pairings, swap
+  $pairing = $rarray[4];         # Grab Pairing from next string in array
+ } else {
+ $genres = "No Genre";		 # No Genre assigned at all?
+ $pairing = $rarray[2];		 # Just assume genre string is the pairing string.
+ }
+}
+
+my @tempu = split( "-", $updated );
+my $updated_stamp = "20$tempu[2]$tempu[0]$tempu[1]0000";
+my @tempp = split( "-", $published );
+my $published_stamp = "20$tempp[2]$tempp[0]$tempp[1]0000";
+
+unshift( @clean_data, "</div>");
+unshift( @clean_data, "<h2><a href=\"http://$publisher/s/$story_id/\">Story</a> published by <a href=\"http://$publisher/\">$publisher</a> on $published (updated $updated)</h2>");
+unshift( @clean_data, "<h2>an $genres featuring $pairing by $author</h2>");
+unshift( @clean_data, "<h1>$story_title</h1>");
+unshift( @clean_data, "<div class=\"titlestuff\">");
+unshift( @clean_data, "<body>");
+unshift( @clean_data, "</head>");
+unshift( @clean_data, "<link\ rel\=\"stylesheet\"\ type\=\"text\/css\"\ href\=\".style.css\">");
+unshift( @clean_data, "<title>$story_title</title>");
+unshift( @clean_data, '<head>');
+unshift( @clean_data, '<html xmlns="http://www.w3.org/1999/xhtml">');
+unshift( @clean_data, '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">');
+unshift( @clean_data, '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"');
+unshift( @clean_data, '<?xml version="1.0" encoding="us-ascii"?>');
+
+`touch $tempfile`;
+open( TMPFILE, ">$tempfile") || die("Could not $tempfile for writing");
+for my $line ( @clean_data ) {
+ print TMPFILE "$line\n";
+}
+close TMPFILE;
+
+# Final HTML Sweep
+`tidy -quiet -modify -omit -config /home/cmauch/Documents/Fanfiction/tidyrc $tempfile 2>/dev/null`;
+# Swap out files
+`rm $workfile`;
+`mv $tempfile \"$destpath/.origin/$original_file\"`;
+`touch -m -t $updated_stamp \"$destpath/.origin/$original_file\"`;
+
+my @pairs = split( '&', $pairing );
+for my $person ( @pairs ) {
+ $person =~ s/^\ //g;
+ $person =~ s/\ $//g;
+ `mkdir -p "$destpath/Characters/$person"` if !(-e "$destpath/Characters/$person");
+ `ln -f -s \"$destpath/.origin/style.css" "$destpath/Characters/$person/.style.css"` if !(-e "$destpath/Characters/$person/.style.css");
+ `ln -f -s \"$destpath/.origin/$original_file\" \"$destpath/Characters/$person/$original_file\"`;
+}
+
+my @genres = split( '/', $genres );
+for my $genre ( @genres ) {
+ $genre =~ s/^\ //g;
+ $genre =~ s/\ $//g;
+ `mkdir -p "$destpath/Genres/$genre"` if !(-e "$destpath/Genres/$genre");
+ `ln -f -s \"$destpath/.origin/style.css" "$destpath/Genres/$genre/.style.css"` if !(-e "$destpath/Genres/$genre/style.css");
+ `ln -f -s \"$destpath/.origin/$original_file\" \"$destpath/Genres/$genre/$original_file\"`;
+}
+
+`ln -f -s \"$destpath/.origin/$original_file\" \"$destpath/Completed/$original_file\"` if ( $iscomplete );
+
+print "Processed \"$original_file\" ...\n";
+
+sub testgenre {
+ my $teststring = shift;
+
+ my @genres = split( '/', $teststring );
+ for my $genre ( @genres ) {
+  for my $validgenre ( @validgenres ) {
+   if ( $validgenre eq $genre ) {
+    return 1;
+   }
+  }
+ }
+
+return 0;
+}
+
+sub movedie {
+
+ my $file = shift;
+ `mv \"$file\" \"$destpath/Unsortable/$file\"`;
+ die "no host for $file";
+
+}
+
