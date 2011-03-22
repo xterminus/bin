@@ -1,0 +1,37 @@
+#!/bin/bash
+# $Id$
+
+# -- AUTHOR & COPYRIGHT -------
+# podcast grabber, splitter, etc
+# Copyright 2011 Charles Mauch (cmauch@gmail.com)
+# Licensed under the GPLv3
+
+# -- DESCRIPTION --------------
+# Run by cron, tests for a network connections and if available
+# runs podracer and tries to split up large podcasts into segments
+# based on mp3 sync errors (which usually indicates an appended
+# mp3 file).  m3a's are just placed into the Podcast directory.
+
+# -- RELATED ------------------
+# see color-temp.sh and redshift man page
+#
+
+
+if [ `nm-tool|grep State|cut -f2 -d' '` == "connected" ]; then
+
+	# Run podracer to download any new podcasts
+	/usr/bin/podracer
+
+	# Now split the podcasts into segments
+	for i in /home/cmauch/temp/rawpodcasts/*.mp3
+	 do
+	  nicename=`basename $i .mp3`
+	  mp3splt -eqd /home/cmauch/Music/Collections/Podcasts -o $nicename-@n $i &> /dev/null
+	done
+
+	for i in /home/cmauch/temp/rawpodcasts/*.m4a
+	 do
+	  mv $i /home/cmauch/Music/Collections/Podcasts/ &> /dev/null
+	done
+fi
+
