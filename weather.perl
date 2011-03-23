@@ -12,7 +12,7 @@
 # and calls redshift to alter monitor temperature based on time of day as well
 
 # -- RELATED ------------------
-# see color-temp.sh and redshift man page
+# see weather.bash and redshift man page
 #
 
 
@@ -92,10 +92,10 @@ else {
 
 if ( $weather =~ /$clearconditions/ ) {
     print "$weather".", executing Clear configuration\n";
-    $output = `/home/cmauch/bin/color-temp Clear`;
+    $output = `/home/cmauch/bin/weather.bash Clear`;
 }
 else {
     print "$weather".", executing Cloudy/Overcast configuration\n";
-    $output = `/home/cmauch/bin/color-temp $weather`;
+    $output = `/home/cmauch/bin/weather.bash $weather`;
 }
 print $output;

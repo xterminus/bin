@@ -1,0 +1,27 @@
+#!/bin/sh
+# $Id$
+
+# -- AUTHOR & COPYRIGHT -------
+# Xsession post-startup script
+# Copyright 2011 Charles Mauch (cmauch@gmail.com)
+# Licensed under the GPLv3
+
+# -- DESCRIPTION --------------
+# Run after most of gnome is up and running, ensures
+# conky is started after a proper delay, as well as starting
+# up the battery-indicator after awn is initalized for proper
+# display.  Yes, it's a bug workaround.
+
+# Just in case
+killall avant-window-navigator
+avant-window-navigator --startup &
+
+# Let things settle down
+sleep 30
+
+/usr/lib/battery-status/battery-status --indicator &
+
+# Fire up conky, which is called by another script
+cd ~/.conky/ConkyGold
+~/.conky/ConkyGold/conky.sh
+

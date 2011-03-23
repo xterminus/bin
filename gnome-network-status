@@ -1,0 +1,21 @@
+#!/bin/bash
+# $Id$
+
+# -- AUTHOR & COPYRIGHT -------
+# Network is up or down detection
+# Copyright 2011 Charles Mauch (cmauch@gmail.com)
+# Licensed under the GPLv3
+
+# -- DESCRIPTION --------------
+# Example snippet usually included in other scripts to show how to detect
+# network status in gnome via network-manager
+
+# MUST USE BASH
+
+if [ `nm-tool|grep State|cut -f2 -d' '` == "connected" ]; then
+       #Whatever you want to do if the network is online
+	echo "up"
+else
+       #Whatever you want to do if the network is offline - note, this and the else above are optional
+	echo "down"
+fi

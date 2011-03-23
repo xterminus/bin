@@ -1,8 +1,0 @@
-#!/bin/sh -e
-. /home/cmauch/.Xdbus
-
-#!/bin/bash
-#
-# call out the hour. run in crontab
-
-echo "Last smoke break" | festival --tts
