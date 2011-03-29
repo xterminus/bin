@@ -16,8 +16,13 @@
 # see color-temp.sh and redshift man page
 #
 
+WORKDONE=0
 
 if [ `nm-tool|grep State|cut -f2 -d' '` == "connected" ]; then
+
+ if [ ! -f /home/cmauch/temp/rawpodcasts ]; then
+  mkdir /home/cmauch/temp/rawpodcasts >/dev/null 2>&1
+ fi
 
 	# Run podracer to download any new podcasts
 	/usr/bin/podracer
@@ -27,11 +32,22 @@ if [ `nm-tool|grep State|cut -f2 -d' '` == "connected" ]; then
 	 do
 	  nicename=`basename $i .mp3`
 	  mp3splt -eqd /home/cmauch/Music/Collections/Podcasts -o $nicename-@n $i &> /dev/null
+	  if [ -f /home/cmauch/Music/Collections/Podcasts/$nicename-@n ]; then
+           ~/bin/send-podcast-notice "$nicename-@n"
+           WORKDONE=1
+          fi
 	done
 
 	for i in /home/cmauch/temp/rawpodcasts/*.m4a
 	 do
 	  mv $i /home/cmauch/Music/Collections/Podcasts/ &> /dev/null
+	  if [ -f /home/cmauch/Music/Collections/Podcasts/$i ]; then
+           ~/bin/send-podcast-notice "$i"
+          WORKDONE=1
+          fi
 	done
 fi
 
+if [ $WORKDONE = 1 ]; then
+ ~/bin/send-podcast-notice "Finished Downloading Podcasts"
+fi

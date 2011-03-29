@@ -44,16 +44,20 @@ else
    GAMMA="0.8 0.8 0.8:" 
 fi 
 
-if [ "$*" = "" ]; then
-        echo "No weather condition given"
-        exit 1
-elif [ "$*" = "Clear" ]; then
-        # Sunny Day
-        redshift -l 47.2530556:-122.4430556 -t 5500:3800 -g $GAMMA -o -v 
+if [ ! -f ~/.shiftpause ]; then
+ if [ "$*" = "" ]; then
+         echo "No weather condition given"
+         exit 1
+ elif [ "$*" = "Clear" ]; then
+         # Sunny Day
+         redshift -l 47.2530556:-122.4430556 -t 5500:3800 -g $GAMMA -o -v 
+ else
+         # Cloudy Day
+         redshift -l 47.2530556:-122.4430556 -t 6500:3800 -g $GAMMA -o -v
+ fi
 else
-        # Cloudy Day
-        redshift -l 47.2530556:-122.4430556 -t 6500:3800 -g $GAMMA -o -v
+	 echo "Screw redshift, turning it off..."
+         redshift -x
 fi
-
 # Fix Contrast
 xcalib -a -co 98
