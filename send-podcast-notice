@@ -1,0 +1,4 @@
+#!/bin/sh -e
+. /home/cmauch/.Xdbus
+
+notify-send --urgency=critical --expire-time=5000 "Podcast Progress Notice" "$*"

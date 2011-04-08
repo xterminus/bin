@@ -17,35 +17,43 @@
 #
 
 WORKDONE=0
+TEMPDIR="/home/cmauch/temp/rawpodcasts"
+DESTDIR="/home/cmauch/Music/Collections/Podcasts"
 
 if [ `nm-tool|grep State|cut -f2 -d' '` == "connected" ]; then
 
- if [ ! -f /home/cmauch/temp/rawpodcasts ]; then
-  mkdir /home/cmauch/temp/rawpodcasts >/dev/null 2>&1
+ if [ ! -f $TEMPDIR ]; then
+  echo "Creating temp mp3 download directory ..."
+  mkdir -p $TEMPDIR
  fi
 
 	# Run podracer to download any new podcasts
 	/usr/bin/podracer
+    echo "Podcasts downloaded..."
+	
+    # Handle m4a files first (move em)
+    for i in $TEMPDIR/*.m4a
+	 do
+	  mv $i $DESTDIR/ &> /dev/null
+	  if [ -f $DESTDIR/$i ]; then
+           echo "Moving $i to Podcast Directory..."
+           ~/bin/send-podcast-notice "$i"
+          WORKDONE=1
+          fi
+	done
 
 	# Now split the podcasts into segments
-	for i in /home/cmauch/temp/rawpodcasts/*.mp3
+	for i in $TEMPDIR/*.mp3
 	 do
 	  nicename=`basename $i .mp3`
-	  mp3splt -eqd /home/cmauch/Music/Collections/Podcasts -o $nicename-@n $i &> /dev/null
-	  if [ -f /home/cmauch/Music/Collections/Podcasts/$nicename-@n ]; then
+      echo "Splitting $nicename-@n ..."
+	  mp3splt -eqd $DESTDIR -o $nicename-@n $i &> /dev/null
+	  if [ -f $DESTDIR/$nicename-@n ]; then
            ~/bin/send-podcast-notice "$nicename-@n"
            WORKDONE=1
           fi
 	done
 
-	for i in /home/cmauch/temp/rawpodcasts/*.m4a
-	 do
-	  mv $i /home/cmauch/Music/Collections/Podcasts/ &> /dev/null
-	  if [ -f /home/cmauch/Music/Collections/Podcasts/$i ]; then
-           ~/bin/send-podcast-notice "$i"
-          WORKDONE=1
-          fi
-	done
 fi
 
 if [ $WORKDONE = 1 ]; then
