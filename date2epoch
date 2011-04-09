@@ -1,0 +1,12 @@
+#!/usr/bin/perl
+# $Id$
+# Author: Charles Mauch (charles@mauch.name)
+# Description: Just outputs a string usable by oddmuse's creation.pl module
+# Legal: (c) Charles Mauch, released under the terms of the GPLv2 (or later)
+
+use Time::Format qw(%time %strftime %manip);
+
+$date = "$ARGV[0] $ARGV[1]";
+
+$epoch = $manip{'%s',$date};
+print "Input:  $date\n\noriginalAuthor: CharlesMauch\ncreated: $epoch\n";

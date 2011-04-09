@@ -1,0 +1,8 @@
+#!/usr/bin/perl
+# $Id$
+# Author: Charles Mauch (charles@mauch.name)
+# Description: Just outputs the current time in human format, cute
+# Legal: (c) 2006 Charles Mauch, released under the terms of the GPLv2 (or later)
+
+use Time::Human;
+print humanize(localtime());

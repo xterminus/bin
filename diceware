@@ -1,0 +1,47 @@
+#!/usr/bin/perl
+# $Id$
+# Author: Charles Mauch (charles@mauch.name)
+# Description: Creates a diceware passphrase
+# Legal: (c) 2006 Charles Mauch, released under the terms of the GPLv2 (or later)
+
+$diceware_wordlist = "$ENV{HOME}/dotfiles/gnupg/beale.wordlist";
+$numwords = 10;		# Number of diceware words to generate
+$throws = $numwords*5;  # How many times to throw the dice
+
+use Games::Dice 'roll_array';
+
+my @rolls = roll_array ${throws} . 'd6'; # Roll a 6 sided dice as many times as needed
+my $one = 1; my $two = 2; my $three = 3; my $four = 4; my $five = 5; # Initialize roll counter
+
+open(WORDLIST, "< $diceware_wordlist") || die("Cant open wordlist\n");
+my @words = <WORDLIST>;
+close WORDLIST;
+$timestamp = &get_timestamp;
+
+print " :  Generated : $timestamp for user $ENV{USER}\n";
+print " : Passphrase : ";
+
+for ($counter = 0 ; $counter < $numwords ; $counter++)
+{
+ my $dicenum = "@rolls[$one]@rolls[$two]@rolls[$three]@rolls[$four]@rolls[$five]";
+ @diceword = grep(/$dicenum/, @words); # Returns an array, yuk
+ $theword = @diceword[0];	       # Pull search result out of array
+ ($num, $word)= split(/\t/, $theword); # Now grab just the word
+ chomp $word; print "$word ";	       # Remove newline, and print it
+ # Now push roll counter up for next run
+ $one = $one + 5; $two = $two + 5; $three = $three + 5; $four = $four + 5; $five = $five + 5;
+}
+print "\n\n";
+print "WARNING: Your scrollback buffer contains this passphrase, please nuke this term\n";
+
+sub get_timestamp {
+    my ($sec, $min, $hour, $mday, $mon, $year) = localtime(time);
+    $year = $year + 1900;
+    $mon = sprintf("%.2d", $mon + 1);
+    $mday = sprintf("%.2d", $mday);
+    $hour = sprintf("%.2d", $hour);
+    $min = sprintf("%.2d", $min);
+    $sec = sprintf("%.2d", $sec);
+    $test = "$year $mon $mday $hour:$min:$sec";
+    return $test;
+}
