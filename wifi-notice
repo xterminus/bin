@@ -1,0 +1,114 @@
+#!/usr/bin/perl
+# $Id$
+
+# -- AUTHOR & COPYRIGHT -------
+# wifi ap monitor and notification script
+# Copyright 2011 Charles Mauch (cmauch@gmail.com)
+# Licensed under the GPLv3
+
+# -- DESCRIPTION --------------
+# Runs in a loop every 30 seconds, pulling in the output from iwlist ethx
+# scanning and records every accesspoint seen.  When new AP's are available,
+# a notice is sent through gnome's notify system indicating a new AP is online
+# with it's relative signal strength.
+
+# -- RELATED ------------------
+# see notify-send and iwlist man page
+#
+
+my %seenaps;
+
+while () {
+ &FindAPs();
+ sleep 30;
+}
+## find access points
+sub FindAPs {
+    my $apoints = `/sbin/iwlist eth1 scanning`;
+    my @spoints = split /Cell/, $apoints;
+
+    my $j=0;
+    undef(@Address);
+    undef(@ESSID);
+    undef(@Mode);
+    undef(@Frequency);
+    undef(@Encryption);
+    undef(@Quality);
+    undef(@Signal);
+    undef(@Noise);
+    undef(@Speed);
+
+    ## parse found APs
+    for (my $i=0; $i<=$#spoints; $i++) {
+
+        if ($spoints[$i] =~/Address:\s*(\w\w:\w\w:\w\w:\w\w:\w\w:\w\w)/i) {
+            $j++;
+            $Address[$j] = $1;
+
+            if ($spoints[$i] =~/ESSID:\s*\"(.*)\"/i) {
+                $ESSID[$j] = $1;
+            }
+            if ($spoints[$i] =~/Mode:\s*(Managed|Ad\-hoc|Auto|Master)\s*/i) {
+                $Mode[$j] = $1;
+            }
+            if ($spoints[$i] =~/Frequency:\s*([\w\.]+)\s*/i) {
+                $Frequency[$j] = $1;
+            }
+            if ($spoints[$i] =~/Encryption key:\s*(on|off)\s*/i) {
+                $Encryption[$j] = $1;
+            }
+            if ($spoints[$i] =~/Quality:(.*?)\s/i) {
+                $Quality[$j] = $1;
+            }
+            if ($spoints[$i] =~/Signal level:(.*?)\sdBm/i) {
+                $Signal[$j] = $1;
+            }
+            if ($spoints[$i] =~/Noise level:(.*?)\s*dBm/i) {
+                $Noise[$j] = $1;
+            }
+            if ($spoints[$i] =~/(11)\ Mb\/s/i) {
+                $Speed[$j] = "802.11b";
+            }
+            if ($spoints[$i] =~/(54)\ Mb\/s/i) {
+                $Speed[$j] = "802.11ag";
+            }
+        }
+    }
+
+    ## show found APs
+    &ListClosedAPs;
+    &ListOpenAPs;
+}
+
+## list Crypted APs
+sub ListClosedAPs {
+    my $dialog_ap;
+    for (my $j=1; $j<=$#Address; $j++) {
+	next if ( $Encryption[$j] ne "on" );
+    next if defined ( $seen{$Address[$j]} );
+    $seen{$Address[$j]}++;
+    my $sig = calc_perc( $Quality[$j] );
+	$dialog_ap = sprintf( "\'%s\ @\ %s%\'\ \'Found CRYPTED %s Wifi Network\'", $ESSID[$j], $sig, $Mode[$j] );
+    system( "notify-send --urgency=low --icon=network-wireless $dialog_ap");
+    }
+}
+
+## list Crypted APs
+sub ListOpenAPs {
+    my $dialog_ap;
+    for (my $j=1; $j<=$#Address; $j++) {
+	next unless ( $Encryption[$j] ne "on" );
+    next if defined ( $seen{$Address[$j]} );
+    $seen{$Address[$j]}++;
+    my $sig = calc_perc( $Quality[$j] );
+	$dialog_ap = sprintf( "\'%s\ @\ %s%\'\ \'Found OPEN %s Wifi Network\'", $ESSID[$j], $sig, $Mode[$j] );
+    system( "notify-send --urgency=low --icon=network-wireless $dialog_ap");
+    }
+}
+
+## Take quality and convert to 20% rounded number (best we can do with linux)
+sub calc_perc {
+  my $qual = shift;
+  $qual =~ /(.)\/.*/;
+ return ( $1 / 5 ) * 100;
+}
