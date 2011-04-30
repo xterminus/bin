@@ -10,12 +10,11 @@
 # Run after most of gnome is up and running, ensures
 # conky is started after a proper delay
 
+pkill wifi-notice
+
 # Let things settle down
-sleep 30
+#sleep 60
 
 # Fire up conky, which is called by another script
-cd ~/.conky/ConkyGold
-~/.conky/ConkyGold/conky.sh
-
-sleep 30
-killall gnome-screensaver
+#cd ~/.conky/ConkyGold
+#~/.conky/ConkyGold/conky.sh

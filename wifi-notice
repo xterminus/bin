@@ -24,7 +24,7 @@ while () {
 }
 ## find access points
 sub FindAPs {
-    my $apoints = `/sbin/iwlist eth1 scanning`;
+    my $apoints = `sudo /sbin/iwlist eth1 scanning`;
     my @spoints = split /Cell/, $apoints;
 
     my $j=0;
