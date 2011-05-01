@@ -76,8 +76,8 @@ sub FindAPs {
     }
 
     ## show found APs
-    &ListClosedAPs;
     &ListOpenAPs;
+    &ListClosedAPs;
 }
 
 ## list Crypted APs
@@ -85,8 +85,8 @@ sub ListClosedAPs {
     my $dialog_ap;
     for (my $j=1; $j<=$#Address; $j++) {
 	next if ( $Encryption[$j] ne "on" );
-    next if defined ( $seen{$Address[$j]} );
-    $seen{$Address[$j]}++;
+    next if defined ( $seen{$ESSID[$j]} );
+    $seen{$ESSID[$j]}++;
     my $sig = calc_perc( $Quality[$j] );
 	$dialog_ap = sprintf( "\'%s\ @\ %s%\'\ \'Found CRYPTED %s Wifi Network\'", $ESSID[$j], $sig, $Mode[$j] );
     system( "notify-send --urgency=low --icon=network-wireless $dialog_ap");
@@ -98,8 +98,8 @@ sub ListOpenAPs {
     my $dialog_ap;
     for (my $j=1; $j<=$#Address; $j++) {
 	next unless ( $Encryption[$j] ne "on" );
-    next if defined ( $seen{$Address[$j]} );
-    $seen{$Address[$j]}++;
+    next if defined ( $seen{$ESSID[$j]} );
+    $seen{$ESSID[$j]}++;
     my $sig = calc_perc( $Quality[$j] );
 	$dialog_ap = sprintf( "\'%s\ @\ %s%\'\ \'Found OPEN %s Wifi Network\'", $ESSID[$j], $sig, $Mode[$j] );
     system( "notify-send --urgency=low --icon=network-wireless $dialog_ap");
