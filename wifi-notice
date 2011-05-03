@@ -16,6 +16,13 @@
 # see notify-send and iwlist man page
 #
 
+# -- INSTALL ------------------
+# * copy script somewhere appropriate, like ~/bin
+# * open gnome's Startup Application, and create an entry for the scripts in
+#   it to start the script at session start.
+# * create a new file in /etc/sudoers.d/ and place an entry in it for iwpriv
+#   your_username ALL= NOPASSWD: /sbin/iwlist
+
 my %seenaps;
 
 while () {
