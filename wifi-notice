@@ -24,6 +24,9 @@
 #   your_username ALL= NOPASSWD: /sbin/iwlist
 
 my %seenaps;
+my $notify_open_timeout   = 8000; # Milliseconds
+my $notify_closed_timeout = 2500; # Milliseconds
+
 
 while () {
  &FindAPs();
@@ -96,7 +99,7 @@ sub ListClosedAPs {
     $seen{$ESSID[$j]}++;
     my $sig = calc_perc( $Quality[$j] );
 	$dialog_ap = sprintf( "\'%s\ @\ %s%\'\ \'Found CRYPTED %s Wifi Network\'", $ESSID[$j], $sig, $Mode[$j] );
-    system( "notify-send --urgency=low --icon=network-wireless $dialog_ap");
+    system( "notify-send --expire-time=$notify_closed_timeout --urgency=low --icon=network-wireless $dialog_ap");
     }
 }
 
@@ -109,7 +112,7 @@ sub ListOpenAPs {
     $seen{$ESSID[$j]}++;
     my $sig = calc_perc( $Quality[$j] );
 	$dialog_ap = sprintf( "\'%s\ @\ %s%\'\ \'Found OPEN %s Wifi Network\'", $ESSID[$j], $sig, $Mode[$j] );
-    system( "notify-send --urgency=low --icon=network-wireless $dialog_ap");
+    system( "notify-send --expire-time=$notify_open_timeout --urgency=low --icon=network-wireless $dialog_ap");
     }
 }
 
