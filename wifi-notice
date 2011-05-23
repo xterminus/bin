@@ -11,6 +11,9 @@
 # scanning and records every accesspoint seen.  When new AP's are available,
 # a notice is sent through gnome's notify system indicating a new AP is online
 # with it's relative signal strength.
+#
+# Note that the script is basicly inactive if both rfkill detects a hardware
+# block or a wifi connection has been established.
 
 # -- RELATED ------------------
 # see notify-send and iwlist man page
@@ -25,13 +28,31 @@
 
 my %seenaps;
 my $notify_open_timeout   = 8000; # Milliseconds
-my $notify_closed_timeout = 2500; # Milliseconds
+my $notify_closed_timeout = 3500; # Milliseconds
 
 
 while () {
- &FindAPs();
- sleep 30;
+ if ( &rfkill eq "no" ) {
+  if ( &NetStatus eq "disconnected" ) {
+   &FindAPs();
+  }
+ }
+sleep 30;
 }
+
+sub rfkill {
+    my $rfkill = `rfkill list wifi`;
+    $rfkill =~ /Hard\ blocked:\ (.*)\n/go;
+   return $1;
+}
+
+sub NetStatus {
+    my $nmtool = `nm-tool | grep "State"`;
+    $nmtool =~ /State:\ (.*)/g;
+   return $1;
+}
+
+
 ## find access points
 sub FindAPs {
     my $apoints = `sudo /sbin/iwlist eth1 scanning`;
@@ -98,12 +119,13 @@ sub ListClosedAPs {
     next if defined ( $seen{$ESSID[$j]} );
     $seen{$ESSID[$j]}++;
     my $sig = calc_perc( $Quality[$j] );
-	$dialog_ap = sprintf( "\'%s\ @\ %s%\'\ \'Found CRYPTED %s Wifi Network\'", $ESSID[$j], $sig, $Mode[$j] );
+	$dialog_ap = sprintf( "\'%s\ at\ %s%\ Strength\'\ \'Found <b>Encrypted</b> %s %s Network\'", $ESSID[$j], $sig, $Mode[$j], $Speed[$j] );
     system( "notify-send --expire-time=$notify_closed_timeout --urgency=low --icon=network-wireless $dialog_ap");
     }
 }
 
-## list Crypted APs
+## list Open APs
+# Need code to enable option to click on "connect" button in dialog
 sub ListOpenAPs {
     my $dialog_ap;
     for (my $j=1; $j<=$#Address; $j++) {
@@ -111,7 +133,7 @@ sub ListOpenAPs {
     next if defined ( $seen{$ESSID[$j]} );
     $seen{$ESSID[$j]}++;
     my $sig = calc_perc( $Quality[$j] );
-	$dialog_ap = sprintf( "\'%s\ @\ %s%\'\ \'Found OPEN %s Wifi Network\'", $ESSID[$j], $sig, $Mode[$j] );
+	$dialog_ap = sprintf( "\'%s\ at\ %s%\ Strength\'\ \'Found <b>Public</b> %s %s Network\'", $ESSID[$j], $sig, $Mode[$j], $speed[$j] );
     system( "notify-send --expire-time=$notify_open_timeout --urgency=low --icon=network-wireless $dialog_ap");
     }
 }

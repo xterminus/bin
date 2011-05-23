@@ -11,7 +11,7 @@
 # conky is started after a proper delay
 
 pkill wifi-notice
-wifi-notice &
+#wifi-notice &
 weather.perl &
 
 # Let things settle down
