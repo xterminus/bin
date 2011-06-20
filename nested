@@ -1,0 +1,6 @@
+#!/bin/bash
+
+/usr/bin/Xnest :1 -bw 0 -geometry 950x520+54+40 -ac &
+export DISPLAY=:1
+echo "Any commands run will now appear in new Xnested window"
+
