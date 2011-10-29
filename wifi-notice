@@ -108,7 +108,7 @@ sub FindAPs {
 
     ## show found APs
     &ListOpenAPs;
-    &ListClosedAPs;
+    # &ListClosedAPs;
 }
 
 ## list Crypted APs

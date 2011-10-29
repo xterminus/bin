@@ -7,12 +7,9 @@
 # Licensed under the GPLv3
 
 # -- DESCRIPTION --------------
-# Run after most of gnome is up and running, ensures
-# conky is started after a proper delay
+# Run after most of gnome is up and running
 
-pkill wifi-notice
-#wifi-notice &
-weather.perl &
+unclutter -noevents -jitter 3 -idle 2 &
 
 # Let things settle down
 #sleep 60
