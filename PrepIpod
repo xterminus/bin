@@ -1,0 +1,29 @@
+#!/usr/bin/perl
+
+my $infile = "@ARGV";
+my $outfile;
+
+if ( ! -f $infile ) {
+    print "File Does not Exist\n";
+    exit 1;
+}
+
+$outfile = $infile . ".m4v";
+$outfile =~ s/avi\.m4v/m4v/;
+$outfile =~ s/mkv\.m4v/m4v/;
+$outfile =~ s/flv\.m4v/m4v/;
+$outfile =~ s/webm\.m4v/m4v/;
+$outfile =~ s/mp4\.m4v/m4v/;
+$outfile =~ s/ogv\.m4v/m4v/;
+$outfile =~ s/Videos\///;
+$outfile =~ s/Movies\///;
+$outfile =~ s/DoctorWho\///;
+$outfile =~ s/\.\.\///;
+$outfile = "/home/cmauch/Videos/iTouch/" . $outfile;
+
+
+
+system( "HandBrakeCLI -i \"$infile\" -o \"$outfile\" --preset=\"iPhone & iPod Touch\" -T -2" );
+
+# To Pause      killall -STOP HandBrakeCLI
+# to Continue   killall -CONT HandBrakeCLI
