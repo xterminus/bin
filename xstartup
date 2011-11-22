@@ -11,6 +11,11 @@
 
 unclutter -noevents -jitter 3 -idle 2 &
 
+sleep 20
+killall gwibber-service
+wallch --constant &
+
+
 # Let things settle down
 #sleep 60
 

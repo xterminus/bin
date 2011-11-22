@@ -23,7 +23,8 @@ $outfile = "/home/cmauch/Videos/iTouch/" . $outfile;
 
 
 
-system( "HandBrakeCLI -i \"$infile\" -o \"$outfile\" --preset=\"iPhone & iPod Touch\" -T -2" );
+#system( "HandBrakeCLI -i \"$infile\" -o \"$outfile\" --preset=\"iPhone & iPod Touch\" -T -2" );
+system( "HandBrakeCLI -i \"$infile\" -o \"$outfile\" --preset=\"iPhone & iPod Touch\" -T" );
 
 # To Pause      killall -STOP HandBrakeCLI
 # to Continue   killall -CONT HandBrakeCLI

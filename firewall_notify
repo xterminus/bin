@@ -15,16 +15,7 @@
 . /home/cmauch/.Xdbus
 
 case "$6" in
-  17500)
-    sudo -E -u cmauch notify-send --urgency=critical --expire-time=5000 "Firewall Traffic Report" "$2 attempted to connect to Dropbox Service\n... adding to host to AUTORESPOND"
-  ;;
-  6646)
-    sudo -E -u cmauch notify-send --urgency=critical --expire-time=5000 "Firewall Traffic Report" "$2 attempted to connect to McAfee Remote Agent\n... adding to host to AUTORESPOND"
-  ;;
-  626)
-    sudo -E -u cmauch notify-send --urgency=critical --expire-time=5000 "Firewall Traffic Report" "$2 attempted to connect to AppleShare\n... adding to host to AUTORESPOND"
-  ;;
   *)
-    sudo -E -u cmauch notify-send --urgency=critical --expire-time=5000 "Firewall Traffic Report" "$2 attempted to connect to port $6\n... adding to host to AUTORESPOND"
+    sudo -E -u cmauch notify-send --urgency=critical --expire-time=5000 "Firewall Traffic Report" "$2 attempted to connect to port $6"
   ;;
   esac
