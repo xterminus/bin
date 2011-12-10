@@ -41,76 +41,65 @@ $|++;
 my $VERSION = '.2b';
 
 #
-use MP3::Tag;
+use MP4::Info;
 use File::Find;
 use Image::Magick;
 
 my %paths;
 
 # MP3 Directory
-print "Type the path to your mp3s and press Enter. \n";
-my $mp3dir = <STDIN>;
-chomp $mp3dir;
+print "Type the path to your m4as and press Enter. \n";
+my $m4adir = <STDIN>;
+chomp $m4adir;
 print "\n";
 
 # Album Art File Name
 print "Type the name of the album art file you\n";
-print "would like extracted to your mp3 folder and press Enter.\n";
+print "would like extracted to your m4a folder and press Enter.\n";
 print "For example cover.jpg\n";
 my $cover = <STDIN>;
 chomp $cover;
 print "\n";
 
-if ( -e $mp3dir ) {
-    print "Checking $mp3dir for mp3s.\n";
+if ( -e $m4adir ) {
+    print "Checking $m4adir for m4as.\n";
 }
 else {
     print("MP3 directory does not exist\n");
     exit;
 }
 
-find( \&ExtractTagInfo, $mp3dir );
+find( \&ExtractTagInfo, $m4adir );
 
 sub ExtractTagInfo {
 
-    if (/\.mp3$/) {
+    if (/\.m4a$/) {
 
         my $art;
+        
+        my $m4a = get_mp4tag($_) or die "No TAG info";
 
-        my $mp3 = MP3::Tag->new($_);
-
-        $mp3->get_tags();
-        if ( exists $mp3->{ID3v2} ) {
-            my $id3v2_tagdata = $mp3->{ID3v2};
-            my $info          = $id3v2_tagdata->get_frame("APIC");
-            $mp3->close();
-            while ( my ( $key, $value ) = each(%$info) ) {
-                if ( $key eq "_Data" ) {
-                    $art = $value;
-                }
-            }
+        if ( exists $m4a->{COVR} ) {
+            $art         = $m4a->{COVR};
         }
         if ( -e "$File::Find::dir/$cover" || -e $cover ) {
-
-            #print "$File::Find::dir/$cover already exists \n";
+            #    print "$File::Find::dir/$cover already exists \n";
         }
-
         # write the art to file
         elsif ($art) {
             open( ARTWORK, ">$cover" )
-              or die
-"Could not open \n$File::Find::dir/$cover\n Check your permissions.\n";
+              or die "Could not open \n$File::Find::dir/$cover\n Check your permissions.\n";
             binmode(ARTWORK);
             print ARTWORK $art;
             close(ARTWORK);
             print "Extracting Art From - $File::Find::name\n";
 
-            #Resize Artwork
+        #    #Resize Artwork
             my ( $image, $x );
             $image = Image::Magick->new;
             $x     = $image->Read("$cover");
             warn "$x" if "$x";
-            $x = $image->Scale('175x175');
+            $x = $image->Scale('500x500');
             $x = $image->Write("$cover");
         }
         else {
@@ -122,7 +111,7 @@ print "\n";
 print
 "All Done! Open logfile.txt for a list of mp3 directories w/o album art information.\n";
 
-open LOGFILE, ">logfile.txt"
+open LOGFILE, ">m4a_logfile.txt"
   or die "Could not open newlog.txt for writing\n";
 
 print LOGFILE "The follwing directories are w/o ablum art.\n";

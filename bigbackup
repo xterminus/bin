@@ -1,0 +1,59 @@
+#!/bin/bash
+. ~/.Xdbus
+
+# Rsync Options (and descriptions)
+# -r                    Recurse Dirs
+# -t                    Preserve Timestamps
+# --modify-window=1     Timestamps can be off by 1 second (MS Windows Compat)
+# -s                    Protect Args (pass spaces, special chars to remote)
+ROPTION="-r -t -v --progress --modify-window=1 -s"
+RAWK="awk -f /home/cmauch/dotfiles/rsync.awk"
+RZEN="zenity --progress --title \"Backup\"  --text=\"Scanning...\" --percentage=0 --auto-kill --auto-close"
+EXCLUDES="/home/cmauch/dotfiles/rsync"
+
+if [ -n "/media/BigWindows" ]; then
+
+ rsync $ROPTION /mnt/windows/Organized\ Music /media/BigWindows/ #| $RAWK | $RZEN
+ rsync $ROPTION --delete /mnt/windows/Collections /media/BigWindows/ #| $RAWK | $RZEN
+ rsync $ROPTION --safe-links /home/cmauch/Videos /media/BigWindows/ #| $RAWK | $RZEN
+ rsync $ROPTION /mnt/windows/Videos/* /media/BigWindows/Videos/Movies/ #| $RAWK | $RZEN
+ rsync $ROPTION --delete --exclude-from=$EXCLUDES/Pictures.exclude /home/cmauch/Pictures /media/BigWindows/ #| $RAWK | $RZEN
+
+fi
+
+if [ -n "/media/BigLinux" ]; then
+ rsync $ROPTION --archive --delete --include-from=$EXCLUDES/homedir.include --exclude-from=$EXCLUDES/homedir.exclude /home/cmauch/ /media/BigLinux/homedir #| $RAWK | $RZEN
+
+ sudo rsync $ROPTION --archive --delete \
+ /etc/X11 \
+ /etc/cron.daily \
+ /etc/dhcp3 /etc/dhcp \
+ /etc/init.d \
+ /etc/pm \
+ /etc/NetworkManager \
+ /etc/privoxy \
+ /etc/apt \
+ /etc/gogoc \
+ /etc/boa \
+ /etc/gitweb.conf \
+ /etc/privoxy \
+ /etc/rc.local \
+ /etc/sysctl.conf \
+ /etc/tor \
+ /etc/hosts* \
+ /etc/installed.conf \
+ /media/BigLinux/etc/
+
+ sudo rsync $ROPTION --archive --delete /var/www /media/BigLinux/var
+
+fi
+
+echo
+echo
+echo "Be Sure to Backup Virtual Machines too!"
+echo "sudo cp -a /home/cmauch/vm/* /media/BigLinux/VirtualBox/"
+echo
+# Notes:
+# Add Notify Events to sucessfull / failure to complete script
+
+
