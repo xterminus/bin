@@ -50,7 +50,7 @@ fi
 echo
 echo
 echo "Be Sure to Backup Virtual Machines too!"
-echo "sudo cp -a /home/cmauch/vm/* /media/BigLinux/VirtualBox/"
+echo "sudo cp -a /home/cmauch/.virtual-machines/* /media/BigLinux/VirtualBox/"
 echo
 # Notes:
 # Add Notify Events to sucessfull / failure to complete script
