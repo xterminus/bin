@@ -16,6 +16,6 @@
 
 case "$6" in
   *)
-    sudo -E -u cmauch notify-send --urgency=critical --expire-time=5000 "Firewall Traffic Report" "$2 attempted to connect to port $6"
+    sudo -E -u cmauch notify-send --urgency=low --expire-time=5000 "Firewall Traffic Report" "$2 attempted to connect"
   ;;
   esac

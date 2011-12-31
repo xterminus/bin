@@ -42,7 +42,7 @@ sleep 30;
 
 sub rfkill {
     my $rfkill = `rfkill list wifi`;
-    $rfkill =~ /Hard\ blocked:\ (.*)\n/go;
+    $rfkill =~ /Soft\ blocked:\ (.*)\n/go;
    return $1;
 }
 
@@ -55,7 +55,7 @@ sub NetStatus {
 
 ## find access points
 sub FindAPs {
-    my $apoints = `sudo /sbin/iwlist eth1 scanning`;
+    my $apoints = `sudo /sbin/iwlist eth0 scanning`;
     my @spoints = split /Cell/, $apoints;
 
     my $j=0;

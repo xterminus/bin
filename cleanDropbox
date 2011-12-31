@@ -1,0 +1,3 @@
+#!/bin/bash
+cd /home/cmauch/Dropbox
+find . -type f -name "* conflicted *" -exec rm -f {} \;

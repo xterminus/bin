@@ -13,10 +13,9 @@ EXCLUDES="/home/cmauch/dotfiles/rsync"
 
 if [ -n "/media/BigWindows" ]; then
 
- rsync $ROPTION /mnt/windows/Organized\ Music /media/BigWindows/ #| $RAWK | $RZEN
- rsync $ROPTION --delete /mnt/windows/Collections /media/BigWindows/ #| $RAWK | $RZEN
+ rsync $ROPTION /home/cmauch/Music/Organized\ Music /media/BigWindows/ #| $RAWK | $RZEN
+ rsync $ROPTION --delete /home/cmauch/Music/Collections /media/BigWindows/ #| $RAWK | $RZEN
  rsync $ROPTION --safe-links /home/cmauch/Videos /media/BigWindows/ #| $RAWK | $RZEN
- rsync $ROPTION /mnt/windows/Videos/* /media/BigWindows/Videos/Movies/ #| $RAWK | $RZEN
  rsync $ROPTION --delete --exclude-from=$EXCLUDES/Pictures.exclude /home/cmauch/Pictures /media/BigWindows/ #| $RAWK | $RZEN
 
 fi
