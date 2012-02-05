@@ -9,11 +9,14 @@
 # -- DESCRIPTION --------------
 # Run after most of gnome is up and running
 
-unclutter -noevents -jitter 3 -idle 2 &
+#unclutter -noevents -jitter 3 -idle 2 &
 
-sleep 120
+sleep 30
 killall gwibber-service
-
+killall ubuntuone-syncdaemon
+killall deja-dup-monitor
+#wally &
+covergloobus &
 
 # Let things settle down
 #sleep 60

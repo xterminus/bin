@@ -1,0 +1,13 @@
+#!/bin/bash
+. ~/.Xdbus
+
+# Rsync Options (and descriptions)
+# -r                    Recurse Dirs
+# -t                    Preserve Timestamps
+# -s                    Protect Args (pass spaces, special chars to remote)
+# --delete              Nuke extra files in destination
+# -m                    Prune empty dirs
+
+rsync -r -t -v -m --delete --progress --exclude Fantasy/* -s /home/cmauch/Documents/Book\ Collection/ /home/cmauch/Dropbox/Book\ Collection/
+
+
