@@ -8,6 +8,6 @@
 # --delete              Nuke extra files in destination
 # -m                    Prune empty dirs
 
-rsync -r -t -v -m --delete --progress --exclude Fantasy/* -s /home/cmauch/Documents/Book\ Collection/ /home/cmauch/Dropbox/Book\ Collection/
+rsync -r -t -v -m --delete --progress --exclude Fantasy/* --exclude The\ Kindle\ Archive/* -s /home/cmauch/Documents/Book\ Collection/ /home/cmauch/Dropbox/Book\ Collection/
 
 

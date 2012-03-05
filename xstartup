@@ -11,12 +11,17 @@
 
 #unclutter -noevents -jitter 3 -idle 2 &
 
+gsettings set org.gnome.desktop.background picture-uri "file:///home/cmauch/Pictures/Favs/Arc-Brave.png"
+
 sleep 30
 killall gwibber-service
 killall ubuntuone-syncdaemon
 killall deja-dup-monitor
+killall gnome-screensaver
 #wally &
 covergloobus &
+gnome-terminal &
+#pidgin &
 
 # Let things settle down
 #sleep 60
