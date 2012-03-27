@@ -9,23 +9,21 @@
 # -- DESCRIPTION --------------
 # Run after most of gnome is up and running
 
-#unclutter -noevents -jitter 3 -idle 2 &
+# Set default background
+#gsettings set org.gnome.desktop.background picture-uri "file:///home/cmauch/Pictures/Favs/Arc-Brave.png"
 
-gsettings set org.gnome.desktop.background picture-uri "file:///home/cmauch/Pictures/Favs/Arc-Brave.png"
+# Fire up terminal, we always need one
+#gnome-terminal &
 
+# Use Google Calendar for our Gnome-Shell Calendar
+#/home/cmauch/src/gnome-shell-google-calendar/gnome-shell-google-calendar.py &
+
+# Rest a while, then start killing off evil ubuntu services
 sleep 30
 killall gwibber-service
 killall ubuntuone-syncdaemon
 killall deja-dup-monitor
 killall gnome-screensaver
-#wally &
-covergloobus &
-gnome-terminal &
-#pidgin &
 
-# Let things settle down
-#sleep 60
-
-# Fire up conky, which is called by another script
-#cd ~/.conky/ConkyGold
-#~/.conky/ConkyGold/conky.sh
+# Fire up misc services
+#covergloobus &
