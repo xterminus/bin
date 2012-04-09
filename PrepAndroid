@@ -1,0 +1,29 @@
+#!/usr/bin/perl
+
+my $infile = "@ARGV";
+my $outfile;
+
+if ( ! -f $infile ) {
+    print "File Does not Exist\n";
+    exit 1;
+}
+
+$outfile = $infile . ".mp4";
+$outfile =~ s/avi\.mp4/mp4/;
+$outfile =~ s/mkv\.mp4/mp4/;
+$outfile =~ s/flv\.mp4/mp4/;
+$outfile =~ s/webm\.mp4/mp4/;
+$outfile =~ s/m4v\.mp4/mp4/;
+$outfile =~ s/ogv\.mp4/mp4/;
+$outfile =~ s/Videos\///;
+$outfile =~ s/Movies\///;
+$outfile =~ s/DoctorWho\///;
+$outfile =~ s/\.\.\///;
+$outfile = "/home/cmauch/Videos/Android/" . $outfile;
+
+
+
+system( "HandBrakeCLI -i \"$infile\" -o \"$outfile\" --preset=\"Android High\" -T -2 -X 800" );
+
+# To Pause      killall -STOP HandBrakeCLI
+# to Continue   killall -CONT HandBrakeCLI
