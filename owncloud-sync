@@ -1,0 +1,44 @@
+#!/bin/bash
+. ~/.Xdbus
+
+# Rsync Options (and descriptions)
+# -r                    Recurse Dirs
+# -t                    Preserve Timestamps
+# -v                    Verbose Output
+# -L                    Copy Referral to Safelinks
+# -c                    Check diffs via crc instead of atime
+
+ROPTION="-r -t -v -c -L --progress --stats"
+OWN="/home/cmauch/OwnCloud"
+
+# Sync up Books
+
+if [ -n "~/OwnCloud/Shared" ]; then
+
+# Documents
+
+  rsync $ROPTION /home/cmauch/Documents/On\ Android/*                    $OWN/Droid/Documents
+ # rsync $ROPTION /home/cmauch/Downloads/Installed Packages/Droid Apps/* $OWN/Droid/Apps
+ # rsync $ROPTION /home/cmauch/Documents/Resumes/*                       $OWN/Documents/Resumes
+ # rsync $ROPTION /home/cmauch/Documents/Wiki/*                          $OWN/Documents/Wiki
+
+# Various Photos
+
+ # rsync $ROPTION /home/cmauch/Pictures/Android       $OWN/Pictures
+ # rsync $ROPTION /home/cmauch/Pictures/Avatars       $OWN/Pictures
+ # rsync $ROPTION /home/cmauch/Pictures/Camera        $OWN/Pictures
+ # rsync $ROPTION /home/cmauch/Pictures/Photo\ Albums $OWN/Pictures 
+ # rsync $ROPTION /home/cmauch/Pictures/Webcam        $OWN/Pictures
+
+# Big Stuff
+
+ # rsync $ROPTION /home/cmauch/Pictures/.1024.600 Backgrounds/*          $OWN/Pictures/Backgrounds/1024x600
+ # rsync $ROPTION /home/cmauch/Pictures/.1366.768\ Backgrounds/*         $OWN/Pictures/Backgrounds/1366x760
+
+ # rsync $ROPTION \ 
+ #    -m --delete --exclude *.pdf --exclude The\ Kindle\ Archive/* \ 
+ #                 /home/cmauch/Documents/Book\ Collection/               $OWN/Book\ Collection/
+
+fi
+
+
