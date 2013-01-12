@@ -18,6 +18,10 @@
 # Use Google Calendar for our Gnome-Shell Calendar
 #/home/cmauch/src/gnome-shell-google-calendar/gnome-shell-google-calendar.py &
 
+# Fire Up Dropbox (headless)
+DISPLAY=100.1 ~/.dropbox-dist/dropboxd &
+insync --kde --plasma &
+
 # Rest a while, then start killing off evil ubuntu services
 sleep 30
 killall gwibber-service
@@ -25,5 +29,3 @@ killall ubuntuone-syncdaemon
 killall deja-dup-monitor
 killall gnome-screensaver
 
-# Fire up misc services
-#covergloobus &

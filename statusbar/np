@@ -1,0 +1,135 @@
+#!/usr/bin/perl
+
+my ($dbusplayer, $player, $status, $statcode, $meta, $title, $artist, $albumartist, $album, $rating, $output);
+
+$dbusplayer = `qdbus | grep -m1 org.mpris.[^M]`; $dbusplayer =~ s/\n//g;
+$pithosup = `qdbus org.mpris.MediaPlayer2.pithos /net/kevinmehall/Pithos IsPlaying`;
+
+
+$player = $dbusplayer;
+$player =~ s/\ org\.mpris\.(.*)/$1/;
+$player =~ s/(\w+)/\u\L$1/g;
+
+sub getmeta_pithos {
+    $meta=`qdbus org.mpris.MediaPlayer2.pithos /net/kevinmehall/Pithos GetCurrentSong`;
+    
+    if ($meta =~/album:\ (.*)/gi) {
+        $album = $1;
+    }
+
+    if ($meta =~/artist:\ (.*)/gi) {
+        $artist = $1;
+    }
+    
+    if ($meta =~/title:\ (.*)/gi) {
+        $title = $1;
+    }
+
+    $output  = "<html>";
+
+    if ( $title ) {
+        $output .= "<b>$title</b></font> ";
+    } else {
+        $output .= "<b>Unknown</b></font> ";
+    }
+
+    if ( $artist ) {
+        $output .= "<em>by $artist</em> ";
+    } else {
+        $output .= "<em>by Unknown</em> ";
+    }
+
+    $output .= "</html>\n";
+    print $output;
+} 
+
+
+sub getmeta_mpris {
+    $meta=`qdbus $dbusplayer /Player org.freedesktop.MediaPlayer.GetMetadata`;
+
+    if ($meta =~/album:\ (.*)/gi) {
+        $album = $1;
+    }
+    if ($meta =~/albumartist:\ (.*)/gi) {
+        $albumartist = $1;
+    }
+    if ($meta =~/artist:\ (.*)/gi) {
+        $artist = $1;
+    }
+    if ($meta =~/rating:\ (.*)/gi) {
+        $rating = $1;
+    }
+    if ($meta =~/title:\ (.*)/gi) {
+        $title = $1;
+    }
+
+    $output  = "<html>";
+
+    if ( $rating eq 5 ) {
+        $output .= "&nbsp;&#9733;&#9733;&#9733;&#9733;&#9733;";
+    } elsif ( $rating eq 4 ) {
+        $output .= "&nbsp;&#9733;&#9733;&#9733;&#9733;";
+    } elsif ( $rating eq 3 ) {
+        $output .= "&nbsp;&#9733;&#9733;&#9733;";
+    } elsif ( $rating eq 2 ) {
+        $output .= "&nbsp;&#9733;&#9733;";
+    } elsif ( $rating eq 1 ) {
+        $output .= "&nbsp;&#9733;";
+    } else {
+        $output .= "";
+    }
+    
+
+    if ( $title ) {
+        $output .= " <b>$title</b> ";
+    } else {
+        $output .= " <b>Unknown</b> ";
+    }
+
+    if ( $artist ) {
+        $output .= "<em>by $artist</em> ";
+    } else {
+        $output .= "<em>by Unknown</em> ";
+    }
+
+    if ( $albumartist ) {
+        if ($albumartist ne $artist ) {
+            $output .= "($albumartist) ";
+        }
+    }
+
+#    if ( $album ) {
+#        $output .= "on \"$album\" ";
+#    }
+
+
+    $output .= "</html>\n";
+    print $output;
+} 
+
+if ( $pithosup ) {
+
+    getmeta_pithos;
+
+} elsif ( $dbusplayer ) {
+
+    $status=`qdbus --literal $dbusplayer /Player GetStatus`;
+
+    if ( $status =~ /\[Argument:\ \(iiii\)\ (.*),\ 0,\ 0,\ 0\]/gi ) {
+        $statcode = $1;
+    }
+
+    if ($statcode eq "2" ) {
+        print "$player is Stopped\n";
+    } elsif ($statcode eq "1" ) {
+        print "$player is Paused\n";
+    } elsif ($statcode eq "0" ) {
+        getmeta_mpris;
+    } else {
+        print "$player Error\n";
+    }
+} else {
+    print "Not Playing Music\n";
+}
+
+

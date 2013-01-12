@@ -1,0 +1,15 @@
+#!/bin/bash
+
+STATUS=`acpi | cut -d' ' -f3`
+POWER=`acpi | cut -d' ' -f4 | sed -e 's/\,//g' | sed -e 's/\r//g'`
+LEFT=`acpi | cut -d' ' -f5 | sed -e 's/\r//g' | cut -c 1-5`
+
+if [ $STATUS == "Discharging," ]; then
+ echo -n "- $POWER / $LEFT"
+elif [ $STATUS == "Full," ]; then
+ echo -n "Charged"
+else
+ echo -n "+ $POWER"
+fi
+
+

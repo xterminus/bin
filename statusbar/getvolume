@@ -1,0 +1,8 @@
+#!/usr/bin/perl
+
+my $amixer=`amixer -c 1 get Master | grep \"Mono:\"`;
+   $amixer =~ /.*Playback\ \d+ \[(.*)\%\] \[.*\]\ \[.*\]/i;
+
+my $volume = $1;
+
+print "$volume%\n";

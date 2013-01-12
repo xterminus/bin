@@ -24,8 +24,7 @@ $outfile = "/home/cmauch/Videos/Android/" . $outfile;
 
 
 
-#system( "HandBrakeCLI -i \"$infile\" -o \"$outfile\" --preset=\"Android High\" -T -2 -w 800 -l 480" );
-system( "HandBrakeCLI -i \"$infile\" -o \"$outfile\" --preset=\"Android High\" -T -w 800 -l 480" );
+system( "HandBrakeCLI -i \"$infile\" -o \"$outfile\" --preset=\"Android Mid\"" );
 
 # To Pause      killall -STOP HandBrakeCLI
 # to Continue   killall -CONT HandBrakeCLI
