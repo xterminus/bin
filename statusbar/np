@@ -129,7 +129,12 @@ if ( $pithosup ) {
         print "$player Error\n";
     }
 } else {
-    print "Not Playing Music\n";
+    my $output = `~/bin/statusbar/lastfm-nowplaying`;
+    if ( $output eq "ERROR" ) {
+      print "Not Playing Music\n";
+    } else {
+      print "$output\n";
+    }
 }
 
 

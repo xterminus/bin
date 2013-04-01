@@ -1,0 +1,55 @@
+#!/usr/bin/perl
+
+use WWW::Curl::Easy;
+use XML::Simple;
+use Data::Dumper;
+
+my $lastfm_username = 'charlesmauch';
+
+# Get ready to attempt to fetch XML using the last.fm API.
+#
+my $curl = new WWW::Curl::Easy;
+
+				$curl->setopt(CURLOPT_HEADER, 0);
+				$curl->setopt(CURLOPT_FOLLOWLOCATION, 1);
+				$curl->setopt(CURLOPT_URL, 'http://ws.audioscrobbler.com/2.0/user/' . $lastfm_username . '/recenttracks.xml');
+				my $response_body;
+
+				open (my $fileb, ">", \$response_body);
+				$curl->setopt(CURLOPT_WRITEDATA,$fileb);
+
+				# Perform the HTTP request.
+				my $retcode = $curl->perform;
+
+				# Make sure the request completed successfully.
+				if ($retcode == 0)
+				{
+					# Now that we know the request completed successfully, make sure the response was valid.
+					my $response_code = $curl->getinfo(CURLINFO_HTTP_CODE);
+
+					# If the response was valid, parse the received XML and output the song information to the current window as a /me action.
+					if ($response_code == 200)
+					{
+						# Parse the XML.
+						my $xs = XML::Simple->new(ForceArray => 1);
+						my $xml_ref = $xs->XMLin($response_body);
+						my $artist = $xml_ref->{track}[0]->{artist}[0]->{content};
+						my $title = $xml_ref->{track}[0]->{name}[0];
+
+						# Construct some output
+                        print "<html><b>LastFM</b>: <em>$title</em> by <b>$artist</b></html>\n";
+                        sleep 30;
+					}
+					# The response was invalid. Let the user know.
+					else
+					{
+                        print 'ERROR';
+                        #print 'ERROR: The last.fm API returned an HTTP response code of ' . $response_code . '.\n';
+					}
+				}
+				# The request didn't complete successfully. Let the user know.
+				else 
+				{
+                    print 'ERROR';
+                    #print "ERROR: Can't connect to last.fm! [" . $curl->strerror($retcode)." ($retcode)]\n";
+				}

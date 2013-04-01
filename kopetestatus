@@ -1,0 +1,19 @@
+#!/bin/sh
+
+while true; do
+
+    # First, check for online status
+    if [ 4 == "$(qdbus org.kde.kded /modules/networkstatus org.kde.Solid.Networking.status)" ];
+    then
+        # Now check for kopete running
+        if [ "$(qdbus org.kde.kopete)" ];
+            then
+                # Now set our status to online
+            	qdbus org.kde.kopete /Kopete org.kde.Kopete.setOnlineStatus Online
+                qdbus org.kde.kopete /Kopete org.kde.Kopete.setStatusMessage 'Forced Online (might be away)'
+        fi
+    fi
+
+    sleep 60
+done
+

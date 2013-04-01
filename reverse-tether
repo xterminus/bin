@@ -1,0 +1,53 @@
+#!/bin/sh
+
+adb kill-server
+
+# We need root on the host to mess with networking
+if [[ $(whoami) != "root" ]]; then
+  echo "You must be root to run this script!"
+  exit 1
+fi;
+
+# We need root on the device to mess with networking
+echo 'Enabling adb root access...'
+adb -d root
+
+sleep 4
+
+# Turn on usb networking
+echo 'Enabling usb network interface on the device... (via remote adb shell script)'
+adb -d shell 'sh /storage/sdcard0/reverse_tether.sh up &'
+echo 'Waiting for device to settle...'
+sleep 4
+
+# Rename device, annoying really (becomes player)
+
+IF=`ifconfig -a | grep "enp" | cut -d ':' -f 1`
+ip link set dev $IF down
+/usr/sbin/ifrename -i $IF -n player
+ip link set dev player up
+echo "Renamed wierd device name to player device..."
+
+echo 'Setting Local IP Stuff ...'
+ifconfig player 192.168.200.1 netmask 255.255.255.0
+ifconfig player up
+iptables -F -t nat
+iptables -A POSTROUTING -t nat -j MASQUERADE
+echo 1 > /proc/sys/net/ipv4/ip_forward
+
+echo 'Starting dnsmasq'
+dnsmasq --interface=player --no-dhcp-interface=player
+
+echo 'Connection is ready! Press any key to shutdown.'
+read
+
+echo 'Using ssh to stop tethering on android device...'
+ssh root@192.168.200.2 'sh /storage/sdcard0/reverse_tether.sh down &'
+
+echo 'Shutting down reverse tethering locally...'
+
+killall dnsmasq
+ifconfig player down
+iptables -F -t nat
+echo 0 > /proc/sys/net/ipv4/ip_forward
+

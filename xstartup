@@ -19,8 +19,12 @@
 #/home/cmauch/src/gnome-shell-google-calendar/gnome-shell-google-calendar.py &
 
 # Fire Up Dropbox (headless)
-DISPLAY=100.1 ~/.dropbox-dist/dropboxd &
-insync --kde --plasma &
+#DISPLAY=100.1 ~/.dropbox-dist/dropboxd &
+#insync --kde --plasma &
+
+# Rest, then startup kontact reminders
+sleep 10
+korgac &
 
 # Rest a while, then start killing off evil ubuntu services
 sleep 30
@@ -29,3 +33,4 @@ killall ubuntuone-syncdaemon
 killall deja-dup-monitor
 killall gnome-screensaver
 
+conky &

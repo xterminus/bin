@@ -1,0 +1,53 @@
+#!/bin/bash
+. ~/.Xdbus
+
+# Rsync Options (and descriptions)
+# -r                    Recurse Dirs
+# -t                    Preserve Timestamps
+# -s                    Protect Args (pass spaces, special chars to remote)
+# --delete              Nuke extra files in destination
+# -m                    Prune empty dirs
+# -c                    Sync based on checksum rather than timestamp
+# -z                    Compress
+OPTS="-rptmcz --delete --progress"
+DEST="/home/cmauch/Box"
+
+if [ ! -f /home/cmauch/Box/online ]; then
+
+    notify-send "box.com" "sync folder offline, aborting..."
+    exit
+
+fi
+
+# Documents
+#rsync $OPTS /home/cmauch/Documents/Howard               $DEST/Documents
+#rsync $OPTS /home/cmauch/Documents/HTML\ Saves          $DEST/Documents
+#rsync $OPTS /home/cmauch/Documents/PDF                  $DEST/Documents
+#rsync $OPTS /home/cmauch/Documents/Resumes              $DEST/Documents
+#rsync $OPTS /home/cmauch/Documents/Street\ Papers       $DEST/Documents
+#rsync $OPTS /home/cmauch/Documents/Wiki                 $DEST/Documents
+#notify-send "box.com" "documents sync completed"
+
+# Music Stuff
+#rsync $OPTS /home/cmauch/Music/Playlists/*               $DEST/Playlists
+#notify-send "box.com" "playlist sync completed"
+
+# Stuff for Android
+
+rsync $OPTS /home/cmauch/Downloads/Droid\ Downloads     $DEST/Droid/Downloads
+rsync $OPTS /home/cmauch/Pictures/Android               $DEST/Droid/Photos
+notify-send "box.com" "android sync completed"
+
+# Photo Sync
+
+#rsync $OPTS /home/cmauch/Pictures/.1366.768 Backgrounds $DEST/Pictures/Backgrounds/1366.768
+#rsync $OPTS /home/cmauch/Pictures/.1024.600 Backgrounds $DEST/Pictures/Backgrounds/1024.600
+#rsync $OPTS /home/cmauch/Pictures/Photo\ Albums         $DEST/Pictures/Photo\ Albums
+#notify-send "box.com" "photo sync completed"
+
+# Ebooks
+#rsync $OPTS --exclude The\ Kindle\ Archive/* /home/cmauch/Documents/Book\ Collection/ $DEST/Book\ Collection/
+#notify-send "box.com" "ebook sync completed"
+
+
+notify-send "box.com" "all backups completed"

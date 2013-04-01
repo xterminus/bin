@@ -11,14 +11,14 @@ RAWK="awk -f /home/cmauch/dotfiles/rsync.awk"
 RZEN="zenity --progress --title \"Backup\"  --text=\"Scanning...\" --percentage=0 --auto-kill --auto-close"
 EXCLUDES="/home/cmauch/dotfiles/rsync"
 
-if [ -n "/media/BigWindows" ]; then
+#if [ -n "/media/BigWindows" ]; then
 
-rsync $ROPTION --delete /home/cmauch/Music/Organized\ Music /media/BigWindows/ 
-rsync $ROPTION --delete /home/cmauch/Music/Collections /media/BigWindows/ 
-rsync $ROPTION --safe-links /home/cmauch/Videos /media/BigWindows/ 
-rsync $ROPTION --delete --exclude-from=$EXCLUDES/Pictures.exclude /home/cmauch/Pictures /media/BigWindows/ 
+#rsync $ROPTION --delete /home/cmauch/Music/Organized\ Music /media/BigWindows/ 
+#rsync $ROPTION --delete /home/cmauch/Music/Collections /media/BigWindows/ 
+#rsync $ROPTION --safe-links --exclude 'Recent' /home/cmauch/Videos /media/BigWindows/ 
+#rsync $ROPTION --delete --exclude-from=$EXCLUDES/Pictures.exclude /home/cmauch/Pictures /media/BigWindows/ 
 
-fi
+#fi
 
 if [ -n "/media/BigLinux" ]; then
  rsync $ROPTION --archive --delete --include-from=$EXCLUDES/homedir.include --exclude-from=$EXCLUDES/homedir.exclude /home/cmauch/ /media/BigLinux/homedir #| $RAWK | $RZEN
@@ -47,11 +47,6 @@ if [ -n "/media/BigLinux" ]; then
 
 fi
 
-echo
-echo
-echo "Be Sure to Backup Virtual Machines too!"
-echo "sudo cp -a /home/cmauch/.virtual-machines/* /media/BigLinux/VirtualBox/"
-echo
 # Notes:
 # Add Notify Events to sucessfull / failure to complete script
 

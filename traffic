@@ -1,0 +1,25 @@
+#!/usr/bin/perl
+my $dev = $ARGV[0];
+
+my @m1 = &get_traffic_measures;
+
+#while (1) {
+    sleep 1;
+    my @m2 = &get_traffic_measures;
+    my @rates = ( $m2[0] - $m1[0], $m2[1] - $m1[1] );
+
+    foreach ('D' , ' U') {
+        printf "$_: %sKB/s",shift @rates;
+    }
+    print "\n";
+    @m1=@m2;
+#}
+
+
+sub get_traffic_measures {
+    my $data = `cat /proc/net/dev | grep "$dev" | head -n1`;
+    $data =~ /$dev\:\s+(\d+)\D+\d+\D+\d+\D+\d+\D+\d+\D+\d+\D+\d+\D+\d+\D+(\d+)\D+/;
+    my $recv = int( $1 / 1024 );
+    my $sent = int( $2 / 1024 );
+    return ( $recv, $sent );
+}

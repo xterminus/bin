@@ -1,7 +1,5 @@
 #!/bin/bash
 
-sleep 20
-
 # Export the dbus session address on startup so it can be used by cron
 rm $HOME/.Xdbus
 touch $HOME/.Xdbus

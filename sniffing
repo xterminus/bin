@@ -1,0 +1,4 @@
+#!/bin/bash
+echo 1 > /proc/brcm_monitor0
+
+echo "echo 0 > /proc/brcm_monitor0" to disable monitor mode

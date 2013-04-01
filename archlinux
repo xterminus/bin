@@ -1,0 +1,8 @@
+#!/bin/bash
+
+sudo mount -t proc none /mnt/arch/proc
+sudo mount -t sysfs none /mnt/arch/sys
+sudo mount -o bind /dev /mnt/arch/dev
+sudo mount -o bind /dev/pts /mnt/arch/dev/pts # important for pacman (for signature check)
+
+chroot /mnt/arch bash

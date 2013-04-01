@@ -1,8 +1,9 @@
 #!/usr/bin/perl
 
-my $amixer=`amixer -c 1 get Master | grep \"Mono:\"`;
-   $amixer =~ /.*Playback\ \d+ \[(.*)\%\] \[.*\]\ \[.*\]/i;
+my $device = `qdbus org.kde.kmix | grep "output" | grep "analog"`;
+   $device =~ s/\n//g;
 
-my $volume = $1;
+my $qdbus=`qdbus org.kde.kmix $device org.kde.KMix.Control.volume`;
+   $qdbus =~ s/\n//g;
 
-print "$volume%\n";
+print "$qdbus%\n";

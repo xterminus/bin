@@ -1,0 +1,7 @@
+#!/bin/bash
+#adb forward tcp:8888 tcp:8888
+#adb forward tcp:8889 tcp:8889
+#adb forward tcp:8890 tcp:8890 
+adb forward tcp:5901 tcp:5901
+#echo
+#echo "try http://localhost:8888/"

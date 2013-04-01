@@ -1,8 +1,0 @@
-#!/bin/bash
-
-      STATUS="X`/sbin/iwgetid`"
-
-      if test "$STATUS" != "X" ; then
-        ESSID="`/sbin/iwgetid |awk -F ":" '{print $2}'|sed -e 's/"//g'`"
-      echo "$ESSID:"
-      fi

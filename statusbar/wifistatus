@@ -1,12 +1,14 @@
 #!/usr/bin/perl
 
+use 5.010;
+
 # Capture errors as normal output
 open STDERR, '>&STDOUT';
 
 # Devices to Monitor
-my $eth_device   = "eth0";
-my $wifi_device  = "eth1";
-my $usb_device   = "usb0";
+my $eth_device   = "lan";
+my $wifi_device  = "wifi";
+my $usb_device   = "jmac-usbwifi";
 my $sleepytime   = "14"; # Force pause!
 my @devices      = ( $eth_device, $usb_device, $wifi_device );
 
@@ -44,7 +46,7 @@ if ( $active_device ne ( $eth_device || $usb_device ) ) {
 
     # Slow/Bad Wifi connection
     if ( $rate == ( 1 or 5 ) ) {
-        print "<html>\"$essid\" \@ $rate Mb\/s \(<font\ color=\"red\">SLOW<\/font>\)</html>\n";
+        print "<html>\"$essid\" \@ $rate Mb\/s \(<font\ color=\"red\">NEED RECONNECT<\/font>\)</html>\n";
         sleep $sleepytime;
         exit;
     } else {
@@ -195,15 +197,27 @@ sub format_latency {
     my $latency = shift;
     my $string;
 
-    if ( $latency < 200 ) {
-        $string = "\($latency ms\)";
-    } else {
-        if ( $latency < 400 ) {
-           $string = "\(<font\ color=\"yellow\">$latency ms<\/font>\)";
-        } else {
-           $string = " \(<font\ color=\"white\">$latency ms<\/font>\)";
-        }
+    given ( $latency ) {
+        # Handle Odd Stuff
+        when ( -1 )         { $string = "\(<font\ color=\"white\">ERROR on $essid<\/font>\)";
+                                if ( $essid eq "Tullys Free WiFi" ) {
+                                    `sudo /etc/wicd/scripts/postconnect/tullyslogin`;
+                                }
+                            }
+        when ( 0 )          { $string = "\(<font\ color=\"white\">NO CONNECTION<\/font>\)"; }
+
+        # Handle Color Coded Latency 
+
+        when ( $_ < 100  )   { $string = "\($latency ms\)"; }
+        when ( $_ < 400  )   { $string = "\(<font\ color=\"green\">$latency ms<\/font>\)" }
+        when ( $_ < 700  )   { $string = "\(<font\ color=\"blue\">$latency ms<\/font>\)" }
+        when ( $_ < 1000 )   { $string = "\(<font\ color=\"yellow\">$latency ms<\/font>\)" }
+        when ( $_ < 1500 )   { $string = "\(<font\ color=\"orange\">$latency ms<\/font>\)" }
+
+        # Fallthrough, red text
+        default             { $string = " \(<font\ color=\"red\">$latency ms<\/font>\)"; }
     }
+
   return $string;
 }
 
