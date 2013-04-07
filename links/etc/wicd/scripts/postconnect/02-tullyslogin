@@ -1,0 +1,44 @@
+#!/usr/bin/perl
+
+use WWW::Mechanize;
+
+# Variable Declarations
+my $essid;
+my $iwconfigdata = `sudo iwconfig wifi 2>/dev/null`;
+
+# Grab ESSID if connected to an AP
+if ($iwconfigdata =~/ESSID:\"(.*)\"/gi) {
+   $essid = $1;
+} else {
+   `logger \"No ESSID, Wired Connection, no Tully\'s Login needed\"`;
+   exit;
+}
+
+
+# If ESSID is Tullys, then go ahead and try to login
+if ( $essid eq "Tullys Free WiFi" ) {
+
+	my $mech = WWW::Mechanize->new( );
+
+	# the url usually doesn't matter, whatever we put in the portal will capture it.
+	my $url = 'http://www.example.com/';
+
+	# sometimes it doesn't work without the sleep
+	sleep 3;
+
+	# Link failure causes a die, so we use eval to figure out if we had a sucessfull login or not
+	eval {
+		$mech->get( $url );
+		$mech->follow_link( url_regex => qr/n21.meraki.com/i );
+		if ( $mech->success() ) {
+			`logger \"Logged into Tully\'s captive portal\"`;
+            exit;
+		}
+
+	} or do {
+    		`logger \"Failed to login into Tully\'s captive portal\"`;
+	}
+} else {
+	`logger \"Not at Tully\'s, no need to login to captive portal\"`;
+}
+

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+logger "Enabling Onion Routing"
+systemctl start tor
