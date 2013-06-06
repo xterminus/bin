@@ -1,0 +1,36 @@
+#!/bin/sh
+
+# We need root on the host to mess with networking
+if [[ $(whoami) != "root" ]]; then
+  echo "You must be root to run this script!"
+  exit 1
+fi;
+
+CONNECTFILE="/etc/netctl/mac.john.wifi"
+
+rocks() {
+
+  sed -i 's/Priority=0/Priority=2/g' $CONNECTFILE
+  /usr/local/bin/net-hooks restart
+
+}
+
+sucks () {
+
+  sed -i 's/Priority=2/Priority=0/g' $CONNECTFILE
+  /usr/local/bin/net-hooks restart
+
+}
+
+
+case $1 in
+        rocks)
+                rocks
+        ;;
+        sucks)
+                sucks
+        ;;
+        *)
+                echo "Usage: rocks|sucks"
+esac
+

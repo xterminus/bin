@@ -1,2 +1,2 @@
 #!/bin/sh
-journalctl -fb
+journalctl -fb | grep -v "Capture precision is too low"

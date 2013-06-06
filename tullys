@@ -1,2 +1,2 @@
 #!/bin/bash
-sudo /etc/wicd/scripts/postconnect/02-tullyslogin
+sudo /usr/local/bin/captive_wifi

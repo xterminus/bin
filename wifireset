@@ -1,16 +1,11 @@
 #!/usr/bin/perl
-
 use 5.010;
 
 # Capture errors as normal output
 open STDERR, '>&STDOUT';
 
 # Devices to Monitor
-my $eth_device   = "lan0";
 my $wifi_device  = "wifi0";
-my $usb_device   = "jmac-usbwifi";
-my $sleepytime   = "14"; # Force pause!
-my @devices      = ( $eth_device, $usb_device, $wifi_device );
 
 # Used to list/discover ap's
 my $open = 0;
@@ -19,82 +14,61 @@ my $closed = 0;
 # Main Program
 # Grab first active device
 # -> wired, then usb, then wifi checked - first one active is grabbed.
-my $active_device = determine_active_device();
+my $active_device = determine_active_device( $wifi_device );
 
 # Detect device status
 #  only print the following output if ethernet and usb are inactive (wifi is left)
-if ( $active_device ne ( $eth_device || $usb_device ) ) {
+
+while ( 1 ) {
+    my $date = `date`;
+    chomp ( $date );
 
     # Detect Wifi rfkill status
     if ( get_rfkill_status() eq "yes" ) {
-        print "WiFi Disabled\n";
-        sleep 2;
-        exit;
+        sleep 27;
     }
 
     if ( ! $active_device ) {
-        # No ip address, so lets just count wifinetworks available
-        print "<html>Networks \(" . &FindAPs( $wifi_device) . "\)</html>\n";
-        sleep 2;
-        exit;
+        sleep 27;
     }
    
     # Wifi looks connected so far, so lets slurp data!
     my ( $active_ip, $active_bcast, $active_mask ) = get_ip_info ( $active_device );
     my ( $essid, $rate, $apmac, $encryption, $security_mode, $power_management, $mode, $frequency, $quality, $signal, $noise ) = get_wifi_info ( $active_device );
-    my ( $latency, $output );
-
-    # Slow/Bad Wifi connection
-    if ( $rate == ( 1 or 5 ) ) {
-        print "<html>\"$essid\" \@ $rate Mb\/s \(<font\ color=\"red\">NEED RECONNECT<\/font>\)</html>\n";
-        sleep $sleepytime;
-        exit;
-    } else {
-        $latency = get_latency();
-    }
-
-    $output = "<html>";
-
-    if ( $encryption ) {
-        $output .= "<b><font\ color=\"green\">Safe</font></b>";
-    } else {
-        $output .= "<b>Public</b>";
-    }
-
-    $output .= " \"$essid\" \@ $rate Mb\/s ";
-    $output .= format_latency( $latency );
-    $output .= "</html>";
-
-    print $output;
 
 
-} elsif ( $active_device ne $wifi_device ) {
-    # Looks like we have a wired connection
-    
-    my ( $active_ip, $active_bcast, $active_mask ) = get_ip_info ( $active_device );
-    my $latency = get_latency();
+    # Wifi driver crapped out
+    if ( $rate eq undef ) {
+        `logger -t wifireset -p crit "Resetting wicd, associated without connection speed"`;
+        `echo "$date : Resetting wicd, associated without connection speed" >> /tmp/wifireset.log`;
+        `sudo systemctl restart wicd.service`;
+        sleep 27; # Don't begin monitoring again for a good while
+    }	
 
-    print "<html>Physical <b>\($active_device\)</b> $active_ip " . &format_latency( $latency ) . "</html>\n";
+    # Slow/Bad Wifi connection, 1 and 5 mpbs connections in theory work, but usually have so much
+    # noise it's better to drop the connection and try for something better
+    if ( $rate == ( 1 or 5.5  ) ) {
+        `logger -t wifireset -p crit "Resetting wicd, $rate Mb\/s connection is too slow"`;
+        `echo "$date : Resetting wicd, $rate Mb\/s connection is too slow" >> /tmp/wifireset.log`;
+        `sudo systemctl restart wicd.service`;
+        sleep 7;
+    } 
 
-} else {
-    # Something is wrong
-    print "something is wrong\n";
+    sleep 7;
+
 }
 
 
-sleep $sleepytime;
 exit;
 
 # Loop through devices, if it's got an ip it's up (hopefully)
 sub determine_active_device {
+    my $device = shift;
 
-    foreach my $device ( @devices )  {
     my $ifconfig = `ifconfig $device 2>/dev/null`;
         if ($ifconfig =~/inet\ (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/gi) {
             return $device;
-            last;
         }
-    }
 }
 
 sub get_rfkill_status {
@@ -111,15 +85,15 @@ sub get_ip_info {
     my ( $ip, $bcast, $mask );
     my $ifconfigdata = `ifconfig $1`;
 
-    if ($ifconfigdata =~/inet addr:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/gi) {
+    if ($ifconfigdata =~/inet (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/gi) {
         $ip = $1;
     } else {
         $ip = '<no IP-Address>';
     }
-    if ($ifconfigdata =~/Bcast:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/gi) {
+    if ($ifconfigdata =~/broadcast (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/gi) {
         $bcast = $1;
     }
-    if ($ifconfigdata =~/Mask:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/gi) {
+    if ($ifconfigdata =~/netmask (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/gi) {
         $mask = $1;
     }
 
@@ -130,7 +104,7 @@ sub get_ip_info {
 sub get_wifi_info {
 
     my ( $essid, $rate, $apmac, $encryption, $security_mode, $power_management, $mode, $frequency, $quality, $signal, $noise );
-    my $iwconfigdata = `sudo iwconfig $1 2>/dev/null`;
+    my $iwconfigdata = `iwconfig $1 2>/dev/null`;
 
     # If we are wired, forget it.
     if ($iwconfigdata =~/no\ wireless\ extensions./gi) {
@@ -145,7 +119,7 @@ sub get_wifi_info {
         if ($iwconfigdata =~/Bit\ Rate\=(.*)\ Mb/gi) {
             $rate = $1;
         }
-        if ($iwconfigdata =~/Access Point:\s+(\w\w:\w\w:\w\w:\w\w:\w\w:\w\w)/gi) {
+        if ($iwconfigdata =~/Access Point: (\w\w:\w\w:\w\w:\w\w:\w\w:\w\w)/gi) {
             $apmac = $1;
         }
         if ($iwconfigdata =~/Encryption key:(.*?)\s/gi) {
@@ -164,13 +138,13 @@ sub get_wifi_info {
         if ($iwconfigdata =~/Frequency:\s*([\w\.]+)\s*/i) {
             $frequency = $1;
         }
-        if ($iwconfigdata =~/Quality:(.*?)\s/i) {
+        if ($iwconfigdata =~/Quality\=(.*?)\s/i) {
             $quality = $1;
         }
-        if (iwconfigdata =~/Signal level:(.*?)\sdBm/i) {
+        if ($iwconfigdata =~/Signal level\=\-(.*?)\sdBm/g) {
             $signal = $1;
         }
-        if (iwconfigdata =~/Noise level:(.*?)\s*dBm/i) {
+        if ($iwconfigdata =~/Noise level\=\-(.*?)\s*dBm/i) {
             $noise = $1;
         }
 
@@ -179,51 +153,9 @@ sub get_wifi_info {
 
 }
 
-# Do latency test, can do better - fix later
-sub get_latency {
-
-    my $cmd = "httping -c 7 -i 3 -m www.google.com";    
-    my @output = `$cmd`;
-    chomp @output;
-
-    my $total = ($output[1] + $output[2] + $output[3] + $output[4] + $output[5] + $output[6] + $output[7]) / 7;
-    $rounded = sprintf( "%.0f", $total );
-  return $rounded;
-
-}
-
-# Present nice html color codes
-sub format_latency {
-    my $latency = shift;
-    my $string;
-
-    given ( $latency ) {
-        # Handle Odd Stuff
-        when ( -1 )         { $string = "\(<font\ color=\"white\">ERROR on $essid<\/font>\)";
-                                if ( $essid eq "Tullys Free WiFi" ) {
-                                    `sudo /etc/wicd/scripts/postconnect/tullyslogin`;
-                                }
-                            }
-        when ( 0 )          { $string = "\(<font\ color=\"white\">NO CONNECTION<\/font>\)"; }
-
-        # Handle Color Coded Latency 
-
-        when ( $_ < 100  )   { $string = "\($latency ms\)"; }
-        when ( $_ < 400  )   { $string = "\(<font\ color=\"green\">$latency ms<\/font>\)" }
-        when ( $_ < 700  )   { $string = "\(<font\ color=\"blue\">$latency ms<\/font>\)" }
-        when ( $_ < 1000 )   { $string = "\(<font\ color=\"yellow\">$latency ms<\/font>\)" }
-        when ( $_ < 1500 )   { $string = "\(<font\ color=\"orange\">$latency ms<\/font>\)" }
-
-        # Fallthrough, red text
-        default             { $string = " \(<font\ color=\"red\">$latency ms<\/font>\)"; }
-    }
-
-  return $string;
-}
-
 ## find access points for unconnected wifi counts
 sub FindAPs {
-    my $apoints = `sudo /sbin/iwlist $1 scanning 2> /dev/null`;
+    my $apoints = `/sbin/iwlist $1 scanning 2> /dev/null`;
     my @spoints = split /Cell/, $apoints;
 
     my $j=0;

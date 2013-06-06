@@ -1,0 +1,425 @@
+#!/usr/bin/perl
+
+my $type;
+my $page;
+
+# --------------------------------------------------------------------- PATHS --
+my $wikibase          = '/home/defiance/Wiki';
+my $wikitext          = $wikibase . '/WikiText';
+
+my $daily_dir         = $wikitext . '/Daily';
+my $men_dir           = $wikitext . '/Men';
+my $homeless_dir      = $wikitext . '/Homeless';
+
+my $daily_template    = $wikibase . '/templates/Daily.mdwn';
+my $men_template      = $wikibase . '/templates/Men.mdwn';
+my $homeless_template = $wikibase . '/templates/Homeless.mdwn';
+
+
+# --------------------------------------------------------------------- DATES --
+
+my $date_year         = `date +%Y`;              $date_year   =~ s/\n//g;
+my $date_today        = `date +%Y.%j`;           $date_today  =~ s/\n//g;
+my $date_full         = `date`;                  $date_full   =~ s/\n//g; 
+my $date_nice         = `date '+%A, %B %d %Y'`;  $date_nice   =~ s/\n//g;
+
+# ----------------------------------------------------------------- TEMPLATES --
+
+
+# -------------------------------------------------------------------- ERRORS --
+
+if ( ! $ARGV[0] ) {
+ print "need a category to edit, valid options are:\n";
+ print "Daily | Men | Homeless\n";
+ exit
+} else {
+ $page = $ARGV[0];
+}
+
+if ( $page eq "Daily" ) {
+    my $editfile = $daily_dir . "/" . $date_today . "/index.mdwn";
+    my $editdir  = $daily_dir . "/" . $date_today . "/";
+
+    if ( -f $editfile ) {
+        print "$editfile exists, updating\n";
+        &editor( $editfile );
+        &updater( $editfile );
+    } else {
+        print "$editfile does not exists\n";
+        `mkdir -p $editdir`;
+        open ( FH, ">>$editfile" );
+        print FH &daily_template( $date_year, $date_today, $date_full, $date_full, $date_nice  );
+        close FH;
+        &editor( $editfile );
+        &updater( $editfile );
+    }
+}
+
+if ( $page eq "Homeless" ) {
+
+    my $editfile;
+    my $editdir;
+
+    if ( ! $ARGV[1] ) {
+        print "Need a Page in Homeless to edit\n";
+        exit;
+    } elsif ( $ARGV[1] eq "index" ) {
+          $editfile = $homeless_dir . "/index.mdwn";
+          $editdir  = $homeless_dir;
+    } else {
+        $editfile = $homeless_dir . "/" . $ARGV[1] . "/index.mdwn";
+        $editdir  = $homeless_dir . "/" . $ARGV[1] . "/";
+    }
+
+
+    if ( -f $editfile ) {
+        print "$editfile exists, updating\n";
+        &editor( $editfile );
+        &updater( $editfile );
+    } else {
+        print "$editfile does not exists\n";
+        `mkdir -p $editdir`;
+        open ( FH, ">>$editfile" );
+        print FH &homeless_template( $date_year, $date_today, $date_full, $date_full );
+        close FH;
+        &editor( $editfile );
+        &updater( $editfile );
+    }
+}
+
+if ( $page eq "Men" ) {
+
+    my $editfile;
+    my $editdir;
+
+    if ( ! $ARGV[1] ) {
+        print "Need a Page in Men to edit\n";
+        exit;
+    } elsif ( $ARGV[1] eq "index" ) {
+          $editfile = $men_dir . "/index.mdwn";
+          $editdir  = $men_dir;
+    } else {
+        $editfile = $men_dir . "/" . $ARGV[1] . "/index.mdwn";
+        $editdir  = $men_dir . "/" . $ARGV[1] . "/";
+    }
+
+
+    if ( -f $editfile ) {
+        print "$editfile exists, updating\n";
+        &editor( $editfile );
+        &updater( $editfile );
+    } else {
+        print "$editfile does not exists\n";
+        `mkdir -p $editdir`;
+        open ( FH, ">>$editfile" );
+        print FH &men_template( $date_year, $date_today, $date_full, $date_full );
+        close FH;
+        &editor( $editfile );
+        &updater( $editfile );
+    }
+}
+
+
+sub editor {
+    my $editfile = shift;
+
+    system( 'vim', $editfile);
+
+    #print "Spellchecking with After the Deadline ...\n\n";
+    #`speller $editfile`;
+
+}
+
+
+sub updater {
+    my $upfile = shift;
+    my $updated_date=`date`; $updated_date =~ s/\n//g;
+    my $updated = 0;
+
+    # Slurp into array
+    open (INPUT, $upfile );
+    @contents = <INPUT>;
+    close INPUT;
+
+    # Write out filtered file
+    open (OUTPUT, ">$upfile" );
+    for my $line (@contents) {
+        if ( $line =~ /UPDATED/ ) {
+            $line =~ s/UPDATED/$updated_date/g;
+            $updated = 1;
+        }
+        if ( $line =~ /^\[\[\!meta\ updated=.*\]\]$/ ) {
+            $line =~ s/^\[\[\!meta\ updated=.*\]\]$/\[\[\!meta\ updated=\"$updated_date\"\]\]/g;
+            $updated = 1;
+        }
+        print OUTPUT $line;
+    }
+    close OUTPUT;
+
+    if ( ! $updated ) {
+        print "\n\nThere is no date or updated indicator in this file, consider adding the following to\n";
+        print "the meta tag information at the end of the file.\n\n";
+        print "[[!meta date=\"$updated_date\"]]\n";
+        print "[[!meta updated=\"$updated_date\"]]\n\n\n";
+    }
+}
+
+
+
+
+sub daily_template {
+    my $year    = shift;
+    my $today   = shift;
+    my $updated = shift;
+    my $date    = shift;
+    my $nice    = shift;
+    my $return_string;
+    $return_string  = "[[!meta updated=\"$updated\"]]\n";
+    $return_string .= "[[!meta date=\"$date\"]]\n";
+    $return_string .= "[[!meta title=\"Daily Update for $nice\"]]\n";
+    $return_string .= "[[!meta author=\"Defiance\"]]\n";
+    $return_string .= "[[!meta authorurl=\"http://point-defiance.rhcloud.com/Authors/Defiance\"]]\n";
+    $return_string .= "[[!meta copyright=\"&copy; $year by Defiance, All rights reserved.\"]]\n";
+    $return_string .= "[[!tag Daily]]\n";
+    $return_string .= "[[!inline pages=\"Daily/CommonReferences\" feeds=\"no\" raw=\"yes\"]]\n";
+  return $return_string;
+}
+sub men_template {
+    my $year    = shift;
+    my $today   = shift;
+    my $updated = shift;
+    my $date    = shift;
+    my $return_string;
+    $return_string  = "[[!meta updated=\"$updated\"]]\n";
+    $return_string .= "[[!meta date=\"$date\"]]\n";
+    $return_string .= "[[!meta title=\"TITLE\"]]\n";
+    $return_string .= "[[!meta author=\"Defiance\"]]\n";
+    $return_string .= "[[!meta authorurl=\"http://point-defiance.rhcloud.com/Authors/Defiance\"]]\n";
+    $return_string .= "[[!meta license=\"This work is [[free|PrimarilyPublicDomain]] of known copyright restrictions.\"]]\n";
+    $return_string .= "[[!meta copyright=\"&copy; $year by Defiance, All rights reserved.\"]]\n";
+    $return_string .= "[[!tag MensIssues]]\n";
+    $return_string .= "[[!inline pages=\"Men/CommonReferences\" feeds=\"no\" raw=\"yes\"]]\n";
+  return $return_string;
+}
+sub homeless_template {
+    my $year    = shift;
+    my $today   = shift;
+    my $updated = shift;
+    my $date    = shift;
+    my $return_string;
+    $return_string  = "[[!meta updated=\"$updated\"]]\n";
+    $return_string .= "[[!meta date=\"$date\"]]\n";
+    $return_string .= "[[!meta title=\"TITLE\"]]\n";
+    $return_string .= "[[!meta author=\"Defiance\"]]\n";
+    $return_string .= "[[!meta authorurl=\"http://point-defiance.rhcloud.com/Authors/Defiance\"]]\n";
+    $return_string .= "[[!meta license=\"This work is [[free|PrimarilyPublicDomain]] of known copyright restrictions.\"]]\n";
+    $return_string .= "[[!meta copyright=\"&copy; $year by Defiance, All rights reserved.\"]]\n";
+    $return_string .= "[[!tag Homeless]]\n";
+  return $return_string;
+}
+
+
+
+__END__
+
+# ----------------------------------------------------------------------- MEN --
+
+if [ $1 = "Men"]; then
+
+ if [ ! $2 ]; then
+  echo "Need a Men page name"
+  exit
+ else
+  PAGE=$2
+ fi
+
+ if [ $PAGE = "index" ]; then
+  EDITFILE="$MENDIR/index.mdwn"
+ else
+  EDITFILE="$MENDIR/$PAGE/index.mdwn"
+  # Create Document if it doesn't exist, fill in date variables
+  if [ ! -f $EDITFILE ]; then
+      # Insert pause to ensure check
+      mkdir -p $MENDIR/$PAGE/
+      cat $MENTEMPLATE | sed 's/YEAR/'$YEARTODAY'/g' | sed "s/FULLDATE/$FULLDATE/g" | sed "s/NICEDATE/$NICEDATE/g" > $EDITPAGE
+  fi
+ fi
+fi
+
+# -------------------------------------------------------------------- HOMELESS --
+
+if [ $1 = "Homeless"]; then
+
+ if [ ! $2 ]; then
+  echo "Need a Homeless page name"
+  exit
+ else
+  PAGE=$2
+ fi
+
+ if [ $PAGE = "index" ]; then
+  EDITFILE="$HOMELESSDIR/index.mdwn"
+ else
+  EDITFILE="$HOMELSSDIR/$PAGE/index.mdwn"
+  # Create Document if it doesn't exist, fill in date variables
+  if [ ! -f $EDITFILE ]; then
+      # Insert pause to ensure check
+      mkdir -p $MENDIR/$PAGE/
+      cat $HOMELSSTEMPLATE | sed 's/YEAR/'$YEARTODAY'/g' | sed "s/FULLDATE/$FULLDATE/g" | sed "s/NICEDATE/$NICEDATE/g" > $EDITPAGE
+  fi
+ fi
+fi
+
+
+
+
+
+sub editor {
+    my $editfile = shift;
+
+    system( 'vim', $editfile);
+
+    #`sed -i "s/UPDATED/$updated_date/g" $editfile`;
+    #`sed -i "s/[[!meta updated=.*]]/[[!meta updated=\"$updated_date\"]]/g" $editfile`;
+ 
+    # Now Pretty Output with spellchecking via AtD
+    #`clear`;
+    #print "-- CONTENT ---------------------------------------------------------------------\n";
+    #`cat $editfile`;
+    #print "----------------------------------------------------------------- END CONTENT --\n\n";
+    #print "Spellchecking with After the Deadline ...\n\n";
+    #`speller $editfile`;
+
+}
+
+
+sub updater {
+    my $upfile = shift;
+    my $updated_date=`date`; $updated_date =~ s/\n//g;
+
+    # Slurp into array
+    open (INPUT, $upfile );
+    @contents = <INPUT>;
+    close INPUT;
+
+    # Write out filtered file
+    open (OUTPUT, ">$upfile" );
+    for my $line (@contents) {
+        if ( $line =~ /UPDATED/ ) {
+            $line =~ s/UPDATED/$updated_date/g;
+        }
+        if ( $line =~ /^\[\[\!meta\ updated=.*\]\]$/ ) {
+            $line =~ s/^\[\[\!meta\ updated=.*\]\]$/\[\[\!meta\ updated=\"$updated_date\"\]\]/g;
+        }
+        print OUTPUT $line;
+    }
+    close OUTPUT;
+}
+
+
+
+
+sub daily_template {
+    my $year    = shift;
+    my $today   = shift;
+    my $updated = shift;
+    my $date    = shift;
+    my $nice    = shift;
+    my $return_string;
+    $return_string  = "[[!meta updated=\"$updated\"]]\n";
+    $return_string .= "[[!meta date=\"$date\"]]\n";
+    $return_string .= "[[!meta title=\"Daily Update for $nice\"]]\n";
+    $return_string .= "[[!meta author=\"Defiance\"]]\n";
+    $return_string .= "[[!meta authorurl=\"http://point-defiance.rhcloud.com/Authors/Defiance\"]]\n";
+    $return_string .= "[[!meta copyright=\"&copy; $year by Defiance, All rights reserved.\"]]\n";
+    $return_string .= "[[!tag Daily]]\n";
+    $return_string .= "[[!inline pages=\"Daily/CommonReferences\" feeds=\"no\" raw=\"yes\"]]\n";
+  return $return_string;
+}
+sub men_template {
+    my $year    = shift;
+    my $today   = shift;
+    my $updated = shift;
+    my $date    = shift;
+    my $return_string;
+    $return_string  = "[[!meta updated=\"$updated\"]]\n";
+    $return_string .= "[[!meta date=\"$date\"]]\n";
+    $return_string .= "[[!meta title=\"TITLE\"]]\n";
+    $return_string .= "[[!meta author=\"Defiance\"]]\n";
+    $return_string .= "[[!meta authorurl=\"http://point-defiance.rhcloud.com/Authors/Defiance\"]]\n";
+    $return_string .= "[[!meta license=\"This work is [[free|PrimarilyPublicDomain]] of known copyright restrictions.\"]]\n";
+    $return_string .= "[[!meta copyright=\"&copy; $year by Defiance, All rights reserved.\"]]\n";
+    $return_string .= "[[!tag MensIssues]]\n";
+    $return_string .= "[[!inline pages=\"Men/CommonReferences\" feeds=\"no\" raw=\"yes\"]]\n";
+  return $return_string;
+}
+sub homeless_template {
+    my $year    = shift;
+    my $today   = shift;
+    my $updated = shift;
+    my $date    = shift;
+    my $return_string;
+    $return_string  = "[[!meta updated=\"$updated\"]]\n";
+    $return_string .= "[[!meta date=\"$date\"]]\n";
+    $return_string .= "[[!meta title=\"TITLE\"]]\n";
+    $return_string .= "[[!meta author=\"Defiance\"]]\n";
+    $return_string .= "[[!meta authorurl=\"http://point-defiance.rhcloud.com/Authors/Defiance\"]]\n";
+    $return_string .= "[[!meta license=\"This work is [[free|PrimarilyPublicDomain]] of known copyright restrictions.\"]]\n";
+    $return_string .= "[[!meta copyright=\"&copy; $year by Defiance, All rights reserved.\"]]\n";
+    $return_string .= "[[!tag Homeless]]\n";
+  return $return_string;
+}
+
+
+
+__END__
+
+# ----------------------------------------------------------------------- MEN --
+
+if [ $1 = "Men"]; then
+
+ if [ ! $2 ]; then
+  echo "Need a Men page name"
+  exit
+ else
+  PAGE=$2
+ fi
+
+ if [ $PAGE = "index" ]; then
+  EDITFILE="$MENDIR/index.mdwn"
+ else
+  EDITFILE="$MENDIR/$PAGE/index.mdwn"
+  # Create Document if it doesn't exist, fill in date variables
+  if [ ! -f $EDITFILE ]; then
+      # Insert pause to ensure check
+      mkdir -p $MENDIR/$PAGE/
+      cat $MENTEMPLATE | sed 's/YEAR/'$YEARTODAY'/g' | sed "s/FULLDATE/$FULLDATE/g" | sed "s/NICEDATE/$NICEDATE/g" > $EDITPAGE
+  fi
+ fi
+fi
+
+# -------------------------------------------------------------------- HOMELESS --
+
+if [ $1 = "Homeless"]; then
+
+ if [ ! $2 ]; then
+  echo "Need a Homeless page name"
+  exit
+ else
+  PAGE=$2
+ fi
+
+ if [ $PAGE = "index" ]; then
+  EDITFILE="$HOMELESSDIR/index.mdwn"
+ else
+  EDITFILE="$HOMELSSDIR/$PAGE/index.mdwn"
+  # Create Document if it doesn't exist, fill in date variables
+  if [ ! -f $EDITFILE ]; then
+      # Insert pause to ensure check
+      mkdir -p $MENDIR/$PAGE/
+      cat $HOMELSSTEMPLATE | sed 's/YEAR/'$YEARTODAY'/g' | sed "s/FULLDATE/$FULLDATE/g" | sed "s/NICEDATE/$NICEDATE/g" > $EDITPAGE
+  fi
+ fi
+fi
+
+

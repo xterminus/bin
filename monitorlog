@@ -1,0 +1,17 @@
+#!/usr/bin/perl
+$| = 1; # Disable buffering
+
+
+#!/usr/bin/perl
+use warnings;
+use strict;
+
+while(<>) {
+ 
+ if ( $_ =~ /cmauch/ ) {
+  print "bad: $_";
+ }
+
+# print $_;
+#... do something with the latest line, $_
+ }

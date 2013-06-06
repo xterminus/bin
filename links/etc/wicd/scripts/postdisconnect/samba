@@ -3,4 +3,3 @@
 logger "Disabling Samba File Sharing"
 systemctl stop smbd
 systemctl stop nmbd
-systemctl stop winbindd

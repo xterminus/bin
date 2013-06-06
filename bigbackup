@@ -11,39 +11,25 @@ RAWK="awk -f /home/cmauch/dotfiles/rsync.awk"
 RZEN="zenity --progress --title \"Backup\"  --text=\"Scanning...\" --percentage=0 --auto-kill --auto-close"
 EXCLUDES="/home/cmauch/dotfiles/rsync"
 
-#if [ -n "/media/BigWindows" ]; then
+if [ -n "/run/media/cmauch/BigWindows" ]; then
 
-#rsync $ROPTION --delete /home/cmauch/Music/Organized\ Music /media/BigWindows/ 
-#rsync $ROPTION --delete /home/cmauch/Music/Collections /media/BigWindows/ 
-#rsync $ROPTION --safe-links --exclude 'Recent' /home/cmauch/Videos /media/BigWindows/ 
-#rsync $ROPTION --delete --exclude-from=$EXCLUDES/Pictures.exclude /home/cmauch/Pictures /media/BigWindows/ 
+# Music
+rsync $ROPTION --delete /home/cmauch/Music/Organized\ Music /run/media/cmauch/BigWindows/ 
+rsync $ROPTION --delete /home/cmauch/Music/Collections /run/media/cmauch/BigWindows/ 
 
-#fi
+# Pictures
+rsync $ROPTION --delete --exclude-from=$EXCLUDES/Pictures.exclude /home/cmauch/Pictures /run/media/cmauch/BigWindows/ 
 
-if [ -n "/media/BigLinux" ]; then
- rsync $ROPTION --archive --delete --include-from=$EXCLUDES/homedir.include --exclude-from=$EXCLUDES/homedir.exclude /home/cmauch/ /media/BigLinux/homedir #| $RAWK | $RZEN
+# Videos
+rsync $ROPTION --safe-links --exclude 'Recent' --exclude '.porn' --exclude 'Android' --exclude 'Convert' /home/cmauch/Videos /run/media/cmauch/BigWindows/ 
 
- sudo rsync $ROPTION --archive --delete \
- /etc/X11 \
- /etc/cron.daily \
- /etc/dhcp3 /etc/dhcp \
- /etc/init.d \
- /etc/pm \
- /etc/NetworkManager \
- /etc/privoxy \
- /etc/apt \
- /etc/gogoc \
- /etc/boa \
- /etc/gitweb.conf \
- /etc/privoxy \
- /etc/rc.local \
- /etc/sysctl.conf \
- /etc/tor \
- /etc/hosts* \
- /etc/installed.conf \
- /media/BigLinux/etc/
+fi
 
- sudo rsync $ROPTION --archive --delete /var/www /media/BigLinux/var
+if [ -n "/run/media/cmauch/BigLinux" ]; then
+
+    rsync $ROPTION --delete --safe-links /home/cmauch/Videos/.porn /run/media/cmauch/BigLinux/Videos/
+rsync $ROPTION --delete --safe-links /home/cmauch/Videos/Android /run/media/cmauch/BigLinux/Videos/
+rsync $ROPTION --delete --safe-links /home/cmauch/Videos/Convert /run/media/cmauch/BigLinux/Videos/
 
 fi
 

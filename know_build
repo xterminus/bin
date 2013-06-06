@@ -1,0 +1,2 @@
+#!/bin/bash
+wget 'http://know-defiance.rhcloud.com/ikiwiki.cgi?do=ping' -O -

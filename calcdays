@@ -1,0 +1,114 @@
+#!/usr/bin/perl
+
+use DateTime;
+use Data::Dumper;
+
+
+my $today    = DateTime->today( time_zone => 'America/Los_Angeles' );
+my $weekago  = $today->add( weeks=>-1);
+my $weekago_year  = $weekago->year();
+my $weekago_month = $weekago->month();
+my $weekago_dom   = $weekago->day();
+
+my $today    = DateTime->today( time_zone => 'America/Los_Angeles' );
+my $monthago = $today->add( months=>-1);
+my $monthago_year  = $monthago->year();
+my $monthago_month = $monthago->month();
+my $monthago_dom   = $monthago->day();
+
+my $today    = DateTime->today( time_zone => 'America/Los_Angeles' );
+my $yearago  = $today->add( years=>-1);
+my $yearago_year  = $yearago->year();
+my $yearago_month = $yearago->month();
+my $yearago_dom   = $yearago->day();
+
+my $today    = DateTime->today( time_zone => 'America/Los_Angeles' );
+
+print <<FOO
+This is the publicly-readable WikiLog thinking space of
+[[Defiance|Authors/Defiance]].  Like any WikiWiki, this site is editable by
+anyone, though in practice I'm the only one doing any editing.  Most people are
+familiar with WikiPedia (A specialized WikiWiki), which is also based on the
+WikiIdea.
+
+This site's primary focus is on [[Mens Issues|Men]], [[the Homeless|Homeless]], 
+and [[Geo/UnitedStates/Washington/PierceCounty/Tacoma]] (which is where I
+live).   See MissionStatement for more information.
+
+All non-blog content is WorkInProgress.  Some other jumping off points on this
+site include [[Geo]], [[Publications]], [[Others]], and [[BlogRoll]].
+
+Most of the information here is subjective. If you are looking for a dedicated
+reference site, try WikiPedia, RationalWiki, [[c2Wiki]] or MeatballWiki.
+
+The Following is the most recent WikiLog entry on this site, see
+[[Daily|Daily/New]] for more.
+
+<div class="recent">
+<h2 class="posttitle">Recent Changes</h2>
+[[!inline
+   pages="tagged(Daily) or tagged(Article) or tagged(Homeless) or tagged(BlogRoll) or tagged(Geography) or tagged(Publications) or tagged(Wiki)"
+   template=front_recent
+   archive=yes
+   feeds=no
+   show=10
+   sort=mtime
+]]</div>
+
+<div class="popular">
+<h2 class="posttitle">Popularity Contest</h2>
+[[!inline
+   pages="tagged(Popular)"
+   template=front_recent
+   archive=yes
+   feeds=no
+   show=10
+   sort=title
+]]</div>
+
+<div class="inthepast">
+<h2 class="posttitle">In the Past</h2>
+
+[[!if test="(tagged(Daily) or tagged(Article) or tagged(Homeless) or tagged(BlogRoll) or tagged(Geography) or tagged(Publications) or tagged(Wiki)) and ( creation_year($weekago_year) and creation_month($weekago_month) and creation_day($weekago_dom))" then="""
+
+<h3>One Week Ago Today</h3>
+[[!inline
+   pages="(tagged(Daily) or tagged(Article) or tagged(Homeless) or tagged(BlogRoll) or tagged(Geography) or tagged(Publications) or tagged(Wiki)) and ( creation_year($weekago_year) and creation_month($weekago_month) and creation_day($weekago_dom))"
+   template=front_recent
+   archive=yes
+   feeds=no
+   show=10
+   sort=mtime
+]]"""
+]]
+
+[[!if test="(tagged(Daily) or tagged(Article) or tagged(Homeless) or tagged(BlogRoll) or tagged(Geography) or tagged(Publications) or tagged(Wiki)) and ( creation_year($monthago_year) and creation_month($monthago_month) and creation_day($monthago_dom))" then="""
+<h3>One Month Ago Today</h3>
+[[!inline
+   pages="(tagged(Daily) or tagged(Article) or tagged(Homeless) or tagged(BlogRoll) or tagged(Geography) or tagged(Publications) or tagged(Wiki)) and ( creation_year($monthago_year) and creation_month($monthago_month) and creation_day($monthago_dom))"
+   template=front_recent
+   archive=yes
+   feeds=no
+   show=10
+   sort=mtime
+]]"""
+]]
+
+[[!if test="(tagged(Daily) or tagged(Article) or tagged(Homeless) or tagged(BlogRoll) or tagged(Geography) or tagged(Publications) or tagged(Wiki)) and ( creation_year($yearago_year) and creation_month($yearago_month) and creation_day($yearago_dom)) " then="""
+<h3>One Year Ago Today</h3>
+[[!inline
+   pages="(tagged(Daily) or tagged(Article) or tagged(Homeless) or tagged(BlogRoll) or tagged(Geography) or tagged(Publications) or tagged(Wiki)) and ( creation_year($yearago_year) and creation_month($yearago_month) and creation_day($yearago_dom) )"
+   template=front_recent
+   archive=yes
+   feeds=no
+   show=10
+   sort=mtime
+]]"""
+
+[[!meta title="Welcome"]]
+[[!meta author="Defiance"]]
+[[!meta authorurl="http://point-defiance.rhcloud.com/Authors/Defiance"]]
+[[!meta license="Redistribute under the terms of the [GNU Free Documentation License 1.3](http://www.gnu.org/copyleft/fdl.html) "]]
+[[!meta copyright="Copyright 2013 by Defiance"]]
+FOO
+

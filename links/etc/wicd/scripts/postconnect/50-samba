@@ -1,6 +1,7 @@
 #!/bin/bash
 
 logger "Enabling Samba File Sharing"
-systemctl start winbindd
 systemctl start nmbd
 systemctl start smbd
+
+

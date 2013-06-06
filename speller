@@ -1,0 +1,66 @@
+#!/usr/bin/perl
+
+use Lingua::AtD;
+use Data::Dumper;
+
+my $checktext = 'Some testingg text stringg in badd nneed of prufreding.';
+my @contentarray;
+my $contentstring;
+my $filename = $ARGV[0];
+
+# Ensure ARGS are good;
+if ( ! $filename ) {
+    print "Supply a file to check\n";
+}
+
+# Slurp in file
+open CHECKFILE, "< $filename" or die "Could not open $filename: $!\n";
+@contentarray=<CHECKFILE>;
+close CHECKFILE;
+
+# Filter out Metadata
+foreach my $line ( @contentarray ) {
+    unless ( 
+        ( $line =~ />\ .*/ ) or       # Remove Quoted Material
+        ( $line =~ /\[\[\!.*/ )  or     # Remove Metadata
+        ( $line =~ /\[\d+\]:.*/ ) or    # Remove Reference urls
+        ( $line =~ /^\n/ )              # Remove Empty Lines
+    ) {
+    $line =~ s/^\s+//g;                 # Stip empty spaces at start of lines
+    $contentstring .= $line;            # Fine, add line to content string
+    }
+}
+
+# Create a new service proxy
+my $atd = Lingua::AtD->new(
+    {   host => 'service.afterthedeadline.com',
+        port => 80
+    }
+);
+
+
+&check_all( $contentstring );
+
+sub check_all($) {
+    my $content = shift;
+
+    # Run spelling and grammar checks. Returns a Lingua::AtD::Response object.
+    my $atd_response = $atd->check_document($content);
+
+    # Loop through reported document errors.
+    foreach my $atd_error ( $atd_response->get_errors() ) {
+        print "\nFound an ATD ". $atd_error->get_description() . " Error\n";
+        
+        # Do something with...
+        print "  \"", $atd_error->get_string(), "\"\n";
+        # Do we have suggestions?
+        if (  $atd_error->has_suggestions() ) {
+
+            my @suggestions = $atd_error->get_suggestions();
+
+            foreach my $sugg ( @suggestions ) {
+                print "   > $sugg\n";
+            } 
+        }
+    }
+}
